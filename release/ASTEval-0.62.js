@@ -1467,6 +1467,7 @@
           node.expressions.forEach(function (n) {
             if (cnt++ > 0) me.out(",");
             me.walk(n, ctx);
+            node.eval_res = n.eval_res;
           });
           this.out(")");
         }
