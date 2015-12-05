@@ -357,25 +357,8 @@ if(_isDeclared( ctx.variables[name] )) {
 
 ```javascript
 
-// var logicals = ["==", "<=", ">=", "==", "===", "!=", ]
-
-var bLeftNeedsPar = true, bRightNeedsPar=true;
-if(node.left.type == "Identifier" || node.left.type == "Literal") {
-    bLeftNeedsPar = false;
-}
-if(node.right.type == "Identifier" || node.right.type == "Literal") {
-    bRightNeedsPar = false;
-}
-
-if(bLeftNeedsPar) this.out("(");
 this.walk(node.left, ctx);
-if(bLeftNeedsPar) this.out(")");
-
-this.out(" "+node.operator+" ");
-
-if(bRightNeedsPar) this.out("(");
 this.walk(node.right, ctx);
-if(bRightNeedsPar) this.out(")");
 
 // evaluate the binary expression
 var a = node.left.eval_res,
@@ -397,10 +380,16 @@ if(!_isUndef(a) && !_isUndef(b) ) {
        if(node.operator==">") node.eval_res = a > b;
        if(node.operator==">=") node.eval_res = a >= b;
        if(node.operator=="&") node.eval_res = a & b;
+       if(node.operator=="|") node.eval_res = a | b;
+       if(node.operator=="<<") node.eval_res = a << b;
+       if(node.operator==">>") node.eval_res = a >> b;
+       if(node.operator==">>>") node.eval_res = a >>> b;
+       
        if(node.operator=="==") node.eval_res = a == b;
        if(node.operator=="!=") node.eval_res = a != b;
        if(node.operator=="===") node.eval_res = a === b;
        if(node.operator=="!==") node.eval_res = a !== b;
+       if(node.operator=="%") node.eval_res = a % b;
        
    } else {
        console.error("Undefined variable in BinaryExpression");
@@ -596,19 +585,12 @@ if(node.body) {
 ```javascript
 
 this.walk(node.test, ctx);
-this.out(" ? ");
-this.walk(node.consequent, ctx);
-this.out(" : ");
-this.walk(node.alternate, ctx);
-
-/*
-interface ConditionalExpression <: Expression {
-    type: "ConditionalExpression";
-    test: Expression;
-    alternate: Expression;
-    consequent: Expression;
+if(node.test.eval_res) {
+    this.walk(node.consequent,ctx);
+} else {
+    this.walk(node.alternate,ctx);
 }
-*/
+
 ```
 
 ### <a name="ASTEval_continueAfterBreak"></a>ASTEval::continueAfterBreak(t)
@@ -649,10 +631,23 @@ this.out("", true);
 
 ```javascript
 var newCtx = { functions : {}, 
-              vars : {}, variables : {}, 
+              vars : {}, 
               parentCtx : ctx,
               block : isBlock
               };   
+
+var pCtx = ctx;
+while(pCtx && pCtx.block) {
+    pCtx = pCtx.parentCtx;
+}
+
+Object.defineProperty(newCtx, 'variables', {
+  enumerable: true,
+  configurable: true,
+  writable: true,
+  value: pCtx.variables
+});
+
 return newCtx;
 ```
 
@@ -668,34 +663,24 @@ this.out("debugger;");
 
 
 ```javascript
-this.nlIfNot();
-this.out("do ",true);
+var max_cnt = 1000*1000; // <-- maximum loop count, temporary setting...
 
-if(node.body) {
-    var bNeedsPar = false;
-    if(node.body.type != "BlockStatement" && ( node.body.type.indexOf("Statement")>=0) ) {
-        bNeedsPar = true;
-    }
-    if(bNeedsPar) {
-        this.out("{");
-        this.indent(1);
-    }
-    this.walk(node.body,ctx);
-    if(bNeedsPar) {
-        this.indent(-1);
-        this.out("}");
-    }
-}
+do {
+    if(node.body) {
+        this.walk(node.body,ctx);
+    }    
+    max_cnt--;
+    if(node.test) {
+        this.walk(node.test,ctx);
+        if(!node.test.eval_res) {
+            break;
+        }
+    } else {
+        // do not allow eternal loop at this point...
+        break;
+    }    
+} while(max_cnt>0);
 
-this.out(" ");
-if(node.test) {
-    this.out("while(");
-    this.trigger("DoWhileTest", node.test);
-    this.walk(node.test,ctx);
-    this.out(")");
-}
-
-this.out("", true);
 ```
 
 ### <a name="ASTEval_EmptyStatement"></a>ASTEval::EmptyStatement(t)
@@ -1253,34 +1238,27 @@ node.eval_type = typeof(node.value);
 
 
 ```javascript
-var bLeftNeedsPar = true, bRightNeedsPar=true;
-if(node.left.type == "Identifier" || node.left.type == "Literal") {
-    bLeftNeedsPar = false;
-}
-if(node.right.type == "Identifier" || node.right.type == "Literal") {
-    bRightNeedsPar = false;
-}
 
-if(bLeftNeedsPar) this.out("(");
 this.walk(node.left, ctx);
-if(bLeftNeedsPar) this.out(")");
-
-if(node.operator) {
-    this.out(" "+node.operator+" ");
-}
-if(bRightNeedsPar) this.out("(");
 this.walk(node.right, ctx);
-if(bRightNeedsPar) this.out(")");
+
+// evaluate the binary expression
+var a = node.left.eval_res,
+    b = node.right.eval_res;
+
+if(!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
+if(!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
+
+if(!_isUndef(a) && !_isUndef(b) ) {
+
+       if(node.operator=="&&") node.eval_res = a && b;
+       if(node.operator=="||") node.eval_res = a || b;
+
+   } else {
+       console.error("Undefined variable in BinaryExpression");
+   }
 
 
-/*
-interface LogicalExpression <: Expression {
-    type: "LogicalExpression";
-    operator: LogicalOperator;
-    left: Expression;
-    right: Expression;
-}
-*/
 ```
 
 ### <a name="ASTEval_MemberExpression"></a>ASTEval::MemberExpression(node, ctx)
@@ -1346,23 +1324,46 @@ if(node.key) {
 
 
 ```javascript
-
-if(node.callee) {
-    this.out(" new ");
-    this.trigger("NewExpressionClass", node.callee);
-    this.walk(node.callee, ctx);
-    this.out("(");
-    if(node.arguments) {
-        var me = this,
-            cnt=0;
-        node.arguments.forEach(function(n) {
-            me.trigger("NewExpressionArgument", n);
-            if(cnt++>0) me.out(", ");
-            me.walk(n,ctx); 
-        });
-    }
-    this.out(")");
+if(node.arguments) {
+    var me = this,
+        cnt=0;
+    node.arguments.forEach(function(n) {
+        if(cnt++>0) me.out(", ");
+        me.walk(n,ctx); 
+    });
 }
+if(node.callee) {
+    
+    this.walk(node.callee, ctx);
+    if(!_isUndef(node.callee.eval_res)) {
+        var a = [];
+        if(node.arguments) {
+            var fnToCall = node.callee.eval_res;
+            node.arguments.forEach(function(n) {
+                if(typeof( n.eval_res ) != "undefined") {
+                    a.push(_toValue(n.eval_res));
+                } else {
+                    a.push( _toValue(me.evalVariable(n, ctx) ) );
+                }
+            });
+            // --> there is no this pointer for the functions
+            
+            var newObj;
+            if(a.length==0) newObj = new fnToCall();
+            if(a.length==1) newObj = new fnToCall(a[0]);
+            if(a.length==2) newObj = new fnToCall(a[0],a[1]);
+            if(a.length==3) newObj = new fnToCall(a[0],a[1],a[2]);
+            if(a.length==4) newObj = new fnToCall(a[0],a[1],a[2],a[3]);
+            if(a.length==5) newObj = new fnToCall(a[0],a[1],a[2],a[3],a[4]);
+            if(a.length==6) newObj = new fnToCall(a[0],a[1],a[2],a[3],a[4],a[5]);
+            
+            node.eval_res = newObj;
+            
+        } 
+    }
+
+}
+
 ```
 
 ### <a name="ASTEval_nlIfNot"></a>ASTEval::nlIfNot(t)
@@ -1589,6 +1590,7 @@ if(node.expressions) {
     node.expressions.forEach( function(n) {
         if(cnt++>0) me.out(",");
         me.walk( n, ctx );
+        node.eval_res = n.eval_res;
     })
     this.out(")");
 }
@@ -1693,6 +1695,21 @@ if(node.consequent) {
 
 
 ```javascript
+
+console.error("Switch statement is not supported...");
+
+// ---> IF
+/*
+this.walk(node.test, ctx);
+if(node.test.eval_res) {
+    this.walk(node.consequent,ctx);
+} else {
+    this.walk(node.alternate,ctx);
+}
+*/
+
+
+/*
 this.nlIfNot();
 this.out("switch(");
 
@@ -1707,6 +1724,8 @@ node.cases.forEach(function(c) {
 })
 this.indent(-1);
 this.out("}",true);
+*/
+
 /*
 interface SwitchStatement <: Statement {
     type: "SwitchStatement";
@@ -1792,6 +1811,9 @@ if(typeof(value) != "undefined") {
     if(node.operator == "-") {
         node.eval_res = -1 * value;
     }
+    if(node.operator == "~") {
+        node.eval_res = ~value;
+    }
     if(node.operator == "!") {
         node.eval_res = !value;
     }  
@@ -1856,10 +1878,14 @@ if(node.operator=="++" && typeof(value)!="undefined") {
     if(!node.prefix) node.eval_res = value;
     value++;
     if(node.prefix) node.eval_res = value;
-    
     node_assign( node.argument, ctx, value);
-    // this.assignTo(node.argument, ctx, value);
-    
+}
+if(node.operator=="--" && typeof(value)!="undefined") {
+    if(!node.prefix) node.eval_res = value;
+    value--;
+    if(node.prefix) node.eval_res = value;
+    node_assign( node.argument, ctx, value);
+
 }
 
 ```
@@ -2078,32 +2104,24 @@ return str;
 
 
 ```javascript
-this.nlIfNot();
-this.out("while ");
 
-if(node.test) {
-    this.trigger("WhileTest", node.test);
-    this.out("(");
-    this.walk(node.test,ctx);
-    this.out(")");
-}
-if(node.body) {
-    var bNeedsPar = false;
-    if(node.body.type != "BlockStatement" && ( node.body.type.indexOf("Statement")>=0) ) {
-        bNeedsPar = true;
-    }
-    if(bNeedsPar) {
-        this.out("{");
-        this.indent(1);
-    }
-    this.walk(node.body,ctx);
-    if(bNeedsPar) {
-        this.indent(-1);
-        this.out("}");
-    }
-}
+var max_cnt = 1000*1000; // <-- maximum loop count, temporary setting...
 
-this.out("", true);
+while(max_cnt>0) {
+    if(node.test) {
+        this.walk(node.test,ctx);
+        if(!node.test.eval_res) {
+            break;
+        }
+    } else {
+        // do not allow eternal loop at this point...
+        break;
+    }
+    if(node.body) {
+        this.walk(node.body,ctx);
+    }    
+    max_cnt--;
+}
 ```
 
 ### <a name="ASTEval_WithStatement"></a>ASTEval::WithStatement(node, ctx)
