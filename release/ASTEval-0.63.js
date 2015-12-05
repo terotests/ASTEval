@@ -1589,20 +1589,34 @@
        * @param float ctx
        */
       _myTrait_.SwitchStatement = function (node, ctx) {
+
+        console.error("Switch statement is not supported...");
+
+        // ---> IF
+        /*
+        this.walk(node.test, ctx);
+        if(node.test.eval_res) {
+        this.walk(node.consequent,ctx);
+        } else {
+        this.walk(node.alternate,ctx);
+        }
+        */
+
+        /*
         this.nlIfNot();
         this.out("switch(");
-
-        this.walk(node.discriminant, ctx);
+        this.walk( node.discriminant, ctx );
         this.out(")");
-        this.out("{", true);
-
+        this.out("{",true);
         this.indent(1);
         var me = this;
-        node.cases.forEach(function (c) {
-          me.walk(c, ctx);
-        });
+        node.cases.forEach(function(c) {
+        me.walk(c,ctx);
+        })
         this.indent(-1);
-        this.out("}", true);
+        this.out("}",true);
+        */
+
         /*
         interface SwitchStatement <: Statement {
         type: "SwitchStatement";
