@@ -1737,7 +1737,7 @@
           }
           if (ctx._switchMatch) {
             if (node.consequent) {
-              this.walk(node.consequent);
+              this.walk(node.consequent, ctx);
               /*
               var me = this;
               node.consequent.forEach( function(c) {
