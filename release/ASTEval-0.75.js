@@ -674,18 +674,29 @@
         var max_cnt = 1000 * 1000; // <-- maximum loop count, temporary setting...
 
         do {
-          if (node.body) {
-            this.walk(node.body, ctx);
-          }
-          max_cnt--;
-          if (node.test) {
-            this.walk(node.test, ctx);
-            if (!node.test.eval_res) {
+          try {
+            if (node.body) {
+              this.walk(node.body, ctx);
+            }
+            max_cnt--;
+            if (node.test) {
+              this.walk(node.test, ctx);
+              if (!node.test.eval_res) {
+                break;
+              }
+            } else {
+              // do not allow eternal loop at this point...
               break;
             }
-          } else {
-            // do not allow eternal loop at this point...
-            break;
+          } catch (msg) {
+            // --> continue from here then
+            if (msg && msg.type == "continue") {
+              continue;
+            }
+            if (msg && msg.type == "break") {
+              break;
+            }
+            throw msg;
           }
         } while (max_cnt > 0);
       };
