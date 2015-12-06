@@ -2043,7 +2043,22 @@
               var next = node._next;
               if (next) {
                 this.walk(next, ctx);
-              } else {}
+              } else {
+                // if not... the context goes to parent
+                if (this._path.length == 0) {
+                  // if there is no stack
+
+                  var pa = node._parent;
+                  while (pa) {
+                    if (pa && pa._next) {
+
+                      this.walk(pa._next, ctx);
+                      break;
+                    }
+                    pa = pa._parent;
+                  }
+                }
+              }
 
               // if this execution walk is over, but we have a break state available from
               // some previous execution context, continue from that...
@@ -2184,5 +2199,3 @@
     define(__amdDefs__);
   }
 }).call(new Function("return this")());
-
-// if not... the context goes to parent
