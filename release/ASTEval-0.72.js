@@ -1727,21 +1727,23 @@
        * @param float ctx
        */
       _myTrait_.SwitchCase = function (node, ctx) {
-        this.nlIfNot();
         if (node.test) {
-          this.out("case ");
           this.walk(node.test, ctx);
-          this.out(" : ", true);
-        } else {
-          this.out("default: ", true);
+
+          if (node.test.eval_res == ctx._switchTest.eval_res) {
+            ctx._switchMatch = true;
+          }
+          if (ctx._switchMatch) {
+            if (node.consequent) {
+              var me = this;
+              node.consequent.forEach(function (c) {
+                me.walk(c, ctx);
+              });
+            }
+          }
         }
 
-        if (node.consequent) {
-          var me = this;
-          node.consequent.forEach(function (c) {
-            me.walk(c, ctx);
-          });
-        }
+        // ctx._switchTest
       };
 
       /**
@@ -1750,7 +1752,21 @@
        */
       _myTrait_.SwitchStatement = function (node, ctx) {
 
-        console.error("Switch statement is not supported...");
+        this.walk(node.discriminant, ctx);
+
+        // Switch statment expressions...
+        try {
+          var me = this;
+          ctx._switchTest = node.discriminant;
+          ctx._switchMatch = false;
+          node.cases.forEach(function (c) {
+            me.walk(c, ctx);
+          });
+        } catch (msg) {
+          if (msg.type == "break") {} else {
+            throw msg;
+          }
+        }
 
         // ---> IF
         /*
