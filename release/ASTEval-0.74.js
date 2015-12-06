@@ -231,12 +231,12 @@
             }
             if (obj && prop) {
               obj[prop] = _wrapValue(value);
+              assignNode.eval_res = _wrapValue(value);
             }
-            assignNode.eval_res = value;
             return;
           }
+          assignNode.eval_res = _wrapValue(value);
           me.assignTo(node.name, ctx, value);
-          assignNode.eval_res = value;
         }
 
         if (node.operator == "=") {
