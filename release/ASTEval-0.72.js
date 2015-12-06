@@ -1753,6 +1753,7 @@
       _myTrait_.SwitchStatement = function (node, ctx) {
 
         this.walk(node.discriminant, ctx);
+        console.log("SwitchStatement does not work properly");
 
         // Switch statment expressions...
         try {
