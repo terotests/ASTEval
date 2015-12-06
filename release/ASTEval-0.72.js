@@ -1929,31 +1929,40 @@
           return;
         }
 
-        // What is going on here then...
+        // walking using prev & next pointers makes detaching the process probably easier
         if (node instanceof Array) {
+
+          var firstItem = node[0];
+          if (!firstItem) return;
+          this.walk(firstItem, ctx);
+          /*
           var me = this;
           var index = 0;
-          var parent = this._path[this._path.length - 1];
-          if (!parent && this._breakState) {
-            if (this._breakState.path) {
-              parent = this._breakState.path[this._breakState.path.length - 1];
-            }
+          var parent = this._path[this._path.length-1];
+          if(!parent && this._breakState) {
+          if(this._breakState.path) {
+            parent = this._breakState.path[this._breakState.path.length-1];
+          }    
+          }    
+          if(parent && typeof( parent._activeIndex ) != "undefined")  {
+          index = parent._activeIndex+1; // if continue, continue from next statement
           }
-          if (parent && typeof parent._activeIndex != "undefined") {
-            index = parent._activeIndex + 1; // if continue, continue from next statement
-          }
-
           // parent of this node...
-          for (var i = index; i < node.length; i++) {
-            if (parent) parent._activeIndex = i;
-            me.walk(node[i], ctx);
-            if (this._break) {
-              return;
-            }
+          for( var i=index; i<node.length;i++) {
+          if(parent) parent._activeIndex = i;
+          me.walk( node[i], ctx );
+          if(this._break) {
+            return;
+          }        
           }
           delete parent._activeIndex;
+          */
         } else {
           if (node.type) {
+
+            // mark the current position
+            this._processingNode = node;
+
             var runTime = {
               node: node,
               ctx: ctx
@@ -2001,16 +2010,24 @@
 
               this._path.pop();
 
+              //-- then either next or parent...
+              var next = node._next;
+              if (next) {
+                this.walk(next, ctx);
+              } else {}
+
               // if this execution walk is over, but we have a break state available from
               // some previous execution context, continue from that...
-              if (this._path.length == 0) {
-                if (this._breakState && this._breakState.path && this._breakState.path.length) {
-                  var returnTo = this._breakState.path.pop();
-                  if (returnTo) {
-                    this.walk(returnTo, returnTo._activeCtx);
-                  }
+              /*
+              if(this._path.length==0) {
+                if(this._breakState && this._breakState.path && this._breakState.path.length) {
+                    var returnTo = this._breakState.path.pop();
+                    if(returnTo) {
+                        this.walk( returnTo, returnTo._activeCtx );
+                    }
                 }
               }
+              */
             } else {
               console.log("Did not find " + node.type);
               console.log(node);
@@ -2138,3 +2155,5 @@
     define(__amdDefs__);
   }
 }).call(new Function("return this")());
+
+// if not... the context goes to parent
