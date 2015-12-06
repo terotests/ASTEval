@@ -215,7 +215,7 @@
               prop = node.property.name;
             }
             if (obj && prop) {
-              obj[prop] = value;
+              obj[prop] = _wrapValue(value);
             }
             return;
           }
@@ -1137,6 +1137,7 @@
           };
           _wrapValue = function (v) {
             if (v === _undefined) return v;
+            if (v === undefined) return _undefined;
             if (typeof v == "undefined") return _undefined;
             return v;
           };
@@ -1894,15 +1895,15 @@
           if (node.id.name && typeof node.init.eval_res != "undefined") {
             if (!ctx.variables) ctx.variables = {};
             if (ctx._varKind == "var") {
-              ctx.variables[node.id.name] = node.init.eval_res;
+              ctx.variables[node.id.name] = _wrapValue(node.init.eval_res);
             }
             if (ctx._varKind == "let") {
               if (!ctx.letVars) ctx.letVars = {};
-              ctx.letVars[node.id.name] = node.init.eval_res;
+              ctx.letVars[node.id.name] = _wrapValue(node.init.eval_res);
             }
             if (ctx._varKind == "const") {
               if (!ctx.constVars) ctx.constVars = {};
-              ctx.constVars[node.id.name] = node.init.eval_res;
+              ctx.constVars[node.id.name] = _wrapValue(node.init.eval_res);
             }
           }
         } else {
