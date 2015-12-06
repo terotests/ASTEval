@@ -1734,14 +1734,7 @@
         this._codeStr = "";
         this._currentLine = "";
 
-        try {
-          this.walk(node, ctx);
-        } catch (msg) {
-
-          console.log("**** got exception from node **** ");
-          console.log(msg);
-        }
-
+        this.walk(node, ctx);
         this.out("", true);
       };
 
