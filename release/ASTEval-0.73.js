@@ -1003,6 +1003,7 @@
             parentCtx: ctx
           };
           fnCtx["this"] = this;
+          fnCtx.variables["arguments"] = arguments;
           var evl = new ASTEval();
 
           for (var i = 0; i < arg_len; i++) {
@@ -1059,6 +1060,7 @@
             parentCtx: ctx
           };
           fnCtx["this"] = this;
+          fnCtx.variables["arguments"] = arguments;
           var evl = new ASTEval();
 
           for (var i = 0; i < arg_len; i++) {
