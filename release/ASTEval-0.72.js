@@ -188,34 +188,75 @@
 
         var value = node.right.eval_res;
         if (!_isDeclared(value)) value = this.evalVariable(node.right, ctx);
+        var left_value = node.left.eval_res;
+        if (!_isDeclared(left_value)) left_value = this.evalVariable(node.left, ctx);
 
-        if (node.operator == "=") {
-          // does have name???
+        var me = this;
 
-          if (node.left.type == "MemberExpression") {
+        function node_assign(node, ctx, value) {
+          if (node.type == "MemberExpression") {
 
             var obj, prop;
-            if (typeof node.left.object.eval_res != "undefined") {
-              obj = node.left.object.eval_res;
+            if (typeof node.object.eval_res != "undefined") {
+              obj = node.object.eval_res;
             } else {
-              obj = this.evalVariable(node.left.object, ctx);
+              obj = me.evalVariable(node.object, ctx);
             }
-            if (node.left.computed) {
-              if (typeof node.left.property.eval_res != "undefined") {
-                prop = this.evalVariable(node.left.property.eval_res, ctx);
+            if (node.computed) {
+              if (typeof node.property.eval_res != "undefined") {
+                prop = me.evalVariable(node.property.eval_res, ctx);
               } else {
-                prop = this.evalVariable(node.left.property.name, ctx);
+                prop = me.evalVariable(node.property.name, ctx);
               }
             } else {
-              prop = node.left.property.name;
+              prop = node.property.name;
             }
             if (obj && prop) {
               obj[prop] = value;
             }
             return;
           }
+          me.assignTo(node.name, ctx, value);
+        }
 
-          this.assignTo(node.left.name, ctx, value);
+        if (node.operator == "=") {
+          node_assign(node.left, ctx, value);
+        }
+        if (node.operator == "+=") {
+          node_assign(node.left, ctx, left_value + value);
+        }
+        if (node.operator == "-=") {
+          node_assign(node.left, ctx, left_value - value);
+        }
+        if (node.operator == "*=") {
+          node_assign(node.left, ctx, left_value * value);
+        }
+        if (node.operator == "/=") {
+          node_assign(node.left, ctx, left_value / value);
+        }
+        if (node.operator == "%=") {
+          node_assign(node.left, ctx, left_value % value);
+        }
+        if (node.operator == "**=") {
+          node_assign(node.left, ctx, Math.pow(left_value, value));
+        }
+        if (node.operator == "<<=") {
+          node_assign(node.left, ctx, left_value << value);
+        }
+        if (node.operator == ">>=") {
+          node_assign(node.left, ctx, left_value >> value);
+        }
+        if (node.operator == ">>>=") {
+          node_assign(node.left, ctx, left_value >>> value);
+        }
+        if (node.operator == "&=") {
+          node_assign(node.left, ctx, left_value & value);
+        }
+        if (node.operator == "^=") {
+          node_assign(node.left, ctx, left_value ^ value);
+        }
+        if (node.operator == "|=") {
+          node_assign(node.left, ctx, left_value | value);
         }
 
         /*
