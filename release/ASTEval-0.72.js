@@ -1192,8 +1192,6 @@
        */
       _myTrait_.listify = function (tree, parentTree) {
 
-        debugger;
-
         tree._parent = parentTree;
 
         for (var n in tree) {
