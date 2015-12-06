@@ -191,6 +191,9 @@
         var left_value = node.left.eval_res;
         if (!_isDeclared(left_value)) left_value = this.evalVariable(node.left, ctx);
 
+        value = _toValue(value);
+        left_value = _toValue(left_value);
+
         var me = this;
 
         function node_assign(node, ctx, value) {
@@ -1759,7 +1762,7 @@
         this.walk(node.argument, ctx);
         if (bNeedsPar) this.out(")");
 
-        var value = node.argument.eval_res || this.evalVariable(node.argument, ctx);
+        var value = _toValue(node.argument.eval_res || this.evalVariable(node.argument, ctx));
 
         if (true) {
           if (node.operator == "-") {
