@@ -194,16 +194,12 @@
       };
 
       /**
-       * @param float node
+       * @param float assignNode
        * @param float ctx
        */
-      _myTrait_.AssignmentExpression = function (node, ctx) {
+      _myTrait_.AssignmentExpression = function (assignNode, ctx) {
 
-        this.trigger("AssigmentLeft", node.left);
-        this.walk(node.left, ctx);
-        this.out(" " + node.operator + " ");
-        this.trigger("AssigmentRight", node.right);
-        this.walk(node.right, ctx);
+        var node = assignNode;
 
         var value = node.right.eval_res;
         if (!_isDeclared(value)) value = this.evalVariable(node.right, ctx);
@@ -236,9 +232,11 @@
             if (obj && prop) {
               obj[prop] = _wrapValue(value);
             }
+            assignNode.eval_res = value;
             return;
           }
           me.assignTo(node.name, ctx, value);
+          assignNode.eval_res = value;
         }
 
         if (node.operator == "=") {
