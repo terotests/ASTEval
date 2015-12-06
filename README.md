@@ -75,6 +75,7 @@
 - [isPaused](README.md#ASTEval_isPaused)
 - [kill](README.md#ASTEval_kill)
 - [LabeledStatement](README.md#ASTEval_LabeledStatement)
+- [listify](README.md#ASTEval_listify)
 - [Literal](README.md#ASTEval_Literal)
 - [LogicalExpression](README.md#ASTEval_LogicalExpression)
 - [MemberExpression](README.md#ASTEval_MemberExpression)
@@ -222,40 +223,54 @@ if( node.elements && node.elements.length>0) {
 
 ```javascript
 
-this.out("function");
-
-if(node.generator) {
-    this.trigger("FunctionGenerator", node);
-    this.out("* ");
-}
-
-if(node.id && node.id.name) {
-    console.log("ERROR: ArrowFunctionExpression should not have name");
-    this.trigger("FunctionName", node);
-    this.out(" "+node.id.name+" "); 
-} else {
-    this.trigger("FunctionAnonymous", node);
-}
-
 var me = this;
-this.out("(");
-var cnt=0;
-
-node.params.forEach(function(p) {
-    if(cnt++>0) me.out(",");
-    me.trigger("FunctionParam", p);
-    me.walk(p,ctx);   
-    if(node.defaults && node.defaults[cnt-1]) {
-        var defP = node.defaults[cnt-1];
-        me.out("=");
-        me.trigger("FunctionDefaultParam", defP);
-        me.walk( defP, ctx);
+var bind_this = this.findThis( ctx );
+node.eval_res = function() {
+    if(me.isKilled()) return;
+    // NOTE: if(node.generator) this.out("*");
+    // 
+    var args = [], arg_len = arguments.length,
+        origArgs = arguments;
+    // function ctx is the parent ctx.
+ 
+    // defining the "this" is left open, perhaps only overriden when needed...
+    var fnCtx = { functions : {}, vars : {}, variables : {}, parentCtx : ctx};    
+    fnCtx["this"] = bind_this;
+    var evl = new ASTEval();
+    
+    for(var i=0; i<arg_len; i++) {
+        args[i] = arguments[i];
     }
-})   
+    // Going the node body with set values or variables...
+    var i = 0;
+    node.params.forEach(function(p) {
+        
+        if(typeof(origArgs[i]) != "undefined") {
+            fnCtx.variables[p.name] =  origArgs[i];
+        } else {
+            if(node.defaults && node.defaults[i]) {
+                me.walk(node.defaults[i], ctx);
+                fnCtx.variables[p.name] =  node.defaults[i].eval_res;
+            }
+        }
+        i++;
+    });
+    
+    evl.startWalk(node.body, fnCtx);
+    
+    if(node.expression) {
+        fnCtx.return_value = node.body.eval_res;
+    }
+    
+    // returned value is simply
+    return fnCtx.return_value;
+    
+}
 
-this.out(")");
-me.trigger("FunctionBody", node.body);
-this.walk(node.body, ctx);    
+// the fn can then be called
+if(node.id && node.id.name) {
+    ctx.variables[node.id.name] = node.eval_res;
+}
 
 ```
 
@@ -272,34 +287,77 @@ this.walk(node.right, ctx);
 
 var value = node.right.eval_res;
 if(!_isDeclared(value)) value = this.evalVariable(node.right, ctx);
+var left_value = node.left.eval_res;
+if(!_isDeclared(left_value)) left_value = this.evalVariable(node.left, ctx);
 
-if(node.operator=="=") {
-    // does have name???
-    
-    if(node.left.type=="MemberExpression") {
+value = _toValue( value );
+left_value = _toValue( left_value );
+
+var me = this;
+function node_assign(node, ctx, value) {
+    if(node.type=="MemberExpression") {
         
         var obj, prop;
-        if(typeof( node.left.object.eval_res  ) !=  "undefined") {
-            obj = node.left.object.eval_res;
+        if(typeof( node.object.eval_res  ) !=  "undefined") {
+            obj = node.object.eval_res;
         } else {
-            obj = this.evalVariable(node.left.object, ctx);
+            obj = me.evalVariable(node.object, ctx);
         }
-        if(node.left.computed) {
-            if(typeof( node.left.property.eval_res  ) !=  "undefined") {
-                prop = this.evalVariable( node.left.property.eval_res, ctx ) ;
+        if(node.computed) {
+            if(typeof( node.property.eval_res  ) !=  "undefined") {
+                prop = me.evalVariable( node.property.eval_res, ctx ) ;
             } else {
-                prop = this.evalVariable( node.left.property.name, ctx ) ;
+                prop = me.evalVariable( node.property.name, ctx ) ;
             }            
         } else {
-            prop = node.left.property.name;
+            prop = node.property.name;
         }
         if(obj && prop) {
-            obj[prop] = value;
+            obj[prop] = _wrapValue( value );
         }
         return;
     }
-    
-    this.assignTo(node.left.name, ctx, value);
+    me.assignTo(node.name, ctx, value);    
+}
+
+if(node.operator=="=") {
+    node_assign(node.left, ctx, value)
+}
+if(node.operator=="+=") {
+    node_assign(node.left, ctx, left_value+value)
+}
+if(node.operator=="-=") {
+    node_assign(node.left, ctx, left_value-value)
+}
+if(node.operator=="*=") {
+    node_assign(node.left, ctx, left_value*value)
+}
+if(node.operator=="/=") {
+    node_assign(node.left, ctx, left_value/value)
+}
+if(node.operator=="%=") {
+    node_assign(node.left, ctx, left_value%value)
+}
+if(node.operator=="**=") {
+    node_assign(node.left, ctx, Math.pow( left_value, value) );
+}
+if(node.operator=="<<=") {
+    node_assign(node.left, ctx, left_value << value );
+}
+if(node.operator==">>=") {
+    node_assign(node.left, ctx, left_value >> value );
+}
+if(node.operator==">>>=") {
+    node_assign(node.left, ctx, left_value >>> value );
+}
+if(node.operator=="&=") {
+    node_assign(node.left, ctx, left_value & value );
+}
+if(node.operator=="^=") {
+    node_assign(node.left, ctx, left_value ^ value );
+}
+if(node.operator=="|=") {
+    node_assign(node.left, ctx, left_value | value );
 }
 
 /*
@@ -367,7 +425,10 @@ var a = node.left.eval_res,
 if(!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
 if(!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
 
-if(!_isUndef(a) && !_isUndef(b) ) {
+a = _toValue(a);
+b = _toValue(b);
+
+if(true) {
 
        // ?? should result be object with value ?
 
@@ -458,6 +519,8 @@ this.nlIfNot();
 this.out("break ");
 if(node.label) this.walk(node.label, ctx);
 this.out("", true);
+
+throw { type : "break" };
 ```
 
 ### <a name="ASTEval_breakWalk"></a>ASTEval::breakWalk(t)
@@ -506,6 +569,7 @@ if(node.callee) {
         
         var this_pointer = ctx["this"]; // <- or global this perhaps 
         if(node.callee.type=="MemberExpression") {
+            this.walk(node.callee, ctx);
             this_pointer = node.callee.object.eval_res;
         }
         if(node.callee.type=="ThisExpression") {
@@ -618,10 +682,8 @@ if(state && this._break) {
 
 
 ```javascript
-this.nlIfNot();
-this.out("continue ");
-if(node.label) this.walk(node.label, ctx);
-this.out("", true);
+
+throw { type : "continue" };
 ```
 
 ### <a name="ASTEval_createContext"></a>ASTEval::createContext(ctx, isBlock)
@@ -641,12 +703,16 @@ while(pCtx && pCtx.block) {
     pCtx = pCtx.parentCtx;
 }
 
-Object.defineProperty(newCtx, 'variables', {
-  enumerable: true,
-  configurable: true,
-  writable: true,
-  value: pCtx.variables
-});
+if(isBlock) {
+    Object.defineProperty(newCtx, 'variables', {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: pCtx.variables
+    });
+} else {
+    newCtx.variables = {};   
+}
 
 return newCtx;
 ```
@@ -657,6 +723,11 @@ return newCtx;
 ```javascript
 this.nlIfNot();
 this.out("debugger;");
+
+throw {
+    msg : "debugger",
+    node : node,
+}
 ```
 
 ### <a name="ASTEval_DoWhileStatement"></a>ASTEval::DoWhileStatement(node, ctx)
@@ -851,14 +922,25 @@ if(!propName || ! obj) return;
 
 for(var xx in obj) {
     // must set the variable ...
-    if(decl) {
-        // ??? declaration ??? 
-        this.assignTo( propName, myCtx, xx);
-    } else {
-        this.assignTo( propName, myCtx, xx);
-    }
-    // Then... ready to go???
-    this.walk(node.body, myCtx);
+    try {
+        if(decl) {
+            // ??? declaration ??? 
+            this.assignTo( propName, myCtx, xx);
+        } else {
+            this.assignTo( propName, myCtx, xx);
+        }
+        // Then... ready to go???
+        this.walk(node.body, myCtx);
+    } catch(msg) {
+                    // --> continue from here then
+                    if(msg && msg.type=="continue") {
+                        continue;
+                    }
+                    if(msg && msg.type=="break") {
+                        break;
+                    }
+                    throw msg;
+                }      
 }
 
 ```
@@ -867,38 +949,62 @@ for(var xx in obj) {
 
 
 ```javascript
-this.nlIfNot();
-this.out("for(");
+
+var myCtx = this.createContext( ctx, true );
 
 if(node.left) {
-    this.trigger("ForOfLeft", node.left);
-    this.walk(node.left,ctx);
+    this.walk(node.left,myCtx);
+} else {
+    return;
 }
-this.out(" of ");
 if(node.right) {
-    this.trigger("ForOfRight", node.right);
-    this.walk(node.right,ctx);
+    this.walk(node.right,myCtx);
+} else {
+    return;
 }
-this.out(")");
 
-if(node.body) {
-    this.trigger("ForOfBody", node.body);
-    var bNeedsPar = false;
-    if(node.body.type != "BlockStatement" && ( node.body.type.indexOf("Statement")>=0) ) {
-        bNeedsPar = true;
-    }
-    if(bNeedsPar) {
-        this.out("{");
-        this.indent(1);
-    }
-    this.walk(node.body,ctx);
-    if(bNeedsPar) {
-        this.indent(-1);
-        this.out("}");
+var obj = node.right.eval_res;
+var propName;
+var decl, kind; //  = "var";
+if(node.left.type=="VariableDeclaration") {
+    decl = node.left.declarations[0];
+    kind = decl.kind;
+    propName = decl.name || decl.id.name;
+} else {
+    if(node.left.type=="Identifier") {
+        propName = node.name;
+    } else {
+        propName = node.left.eval_res;
     }
 }
 
-this.out("", true);
+if(!propName || ! obj) return;
+
+var me = this;
+obj.every( function(xx) {
+    // must set the variable ...
+    try {
+        if(decl) {
+            // ??? declaration ??? 
+            me.assignTo( propName, myCtx, xx);
+        } else {
+            me.assignTo( propName, myCtx, xx);
+        }
+        // Then... ready to go???
+        me.walk(node.body, myCtx);
+        return true;
+    } catch(msg) {
+                    // --> continue from here then
+                    if(msg && msg.type=="continue") {
+                        return true;
+                    }
+                    if(msg && msg.type=="break") {
+                        return false;
+                    }
+                    throw msg;
+                }      
+});
+
 ```
 
 ### <a name="ASTEval_ForStatement"></a>ASTEval::ForStatement(node, ctx)
@@ -915,22 +1021,33 @@ if(node.init) {
 var max_cnt = 1000*1000; // <-- maximum loop count, temporary setting...
 
 while(max_cnt>0) {
-    if(node.test) {
-        this.walk(node.test,myCtx);
-        if(!node.test.eval_res) {
+    try {
+        if(node.test) {
+            this.walk(node.test,myCtx);
+            if(!node.test.eval_res) {
+                break;
+            }
+        } else {
+            // do not allow eternal loop at this point...
             break;
         }
-    } else {
-        // do not allow eternal loop at this point...
-        break;
-    }
-    if(node.body) {
-        this.walk(node.body,myCtx);
-    }    
-    if(node.update) {
-        this.walk(node.update,myCtx);
-    }
-    max_cnt--;
+        if(node.body) {
+            this.walk(node.body,myCtx);
+        }    
+        if(node.update) {
+            this.walk(node.update,myCtx);
+        }
+        max_cnt--;
+    } catch(msg) {
+                // --> continue from here then
+                if(msg && msg.type=="continue") {
+                    continue;
+                }
+                if(msg && msg.type=="break") {
+                    break;
+                }
+                throw msg;
+            }    
 }
 ```
 
@@ -951,7 +1068,9 @@ node.eval_res = function() {
     // function ctx is the parent ctx.
  
     // defining the "this" is left open, perhaps only overriden when needed...
-    var fnCtx = { functions : {}, vars : {}, variables : {}, parentCtx : ctx};    
+    var fnCtx = { functions : {}, vars : {}, variables : {}, parentCtx : ctx};
+    fnCtx["this"] = this;
+    fnCtx.variables["arguments"] = arguments;
     var evl = new ASTEval();
     
     for(var i=0; i<arg_len; i++) {
@@ -1003,6 +1122,8 @@ node.eval_res = function() {
  
     // defining the "this" is left open, perhaps only overriden when needed...
     var fnCtx = { functions : {}, vars : {}, variables : {}, parentCtx : ctx};    
+    fnCtx["this"] = this;
+    fnCtx.variables["arguments"] = arguments;
     var evl = new ASTEval();
     
     for(var i=0; i<arg_len; i++) {
@@ -1116,8 +1237,11 @@ if(node.body) {
 
 
 ```javascript
-// just output the identifier name...
-this.out(node.name);
+
+if(node.name=="undefined") {
+    node.eval_res = _undefined;
+    return;
+}
 node.eval_res = this.evalVariable( node.name, ctx );
 
 
@@ -1171,6 +1295,7 @@ if(!_isUndef) {
     }    
     _wrapValue = function(v) {
         if(v === _undefined) return v;
+        if(v === undefined) return _undefined;
         if(typeof(v)=="undefined") return _undefined;
         return v;
     }
@@ -1223,6 +1348,44 @@ if(node.body) this.walk(node.body, ctx);
 this.indent(-1);
 ```
 
+### <a name="ASTEval_listify"></a>ASTEval::listify(tree, parentTree)
+`tree` AST tree to make as &quot;list&quot;
+ 
+
+Marks _next, _prev and _parent to the AST nodes to make easier to evaluate
+```javascript
+
+if(!tree) return;
+
+tree._parent = parentTree;
+
+for(var n in tree) {
+    if(tree.hasOwnProperty(n)) {
+        if(n=="_next") continue;
+        if(n=="_prev") continue;
+        if(n=="_parent") continue;
+        if(n=="range") continue;
+        if(n=="comments") continue;
+        var item = tree[n];
+        if(item instanceof Array) {
+            
+            for(var i=0; i<item.length;i++) {
+                var ii = item[i];
+                if(typeof(ii)=="object") {
+                    if(i < (item.length-1)) ii._next = item[i+1];
+                    if(i>0) ii._prev = item[i-1];
+                    this.listify( ii, tree );
+                }
+            }
+        } else {
+            if(typeof(item) == "object") {
+                this.listify(item, tree);
+            }
+        }
+    }
+}
+```
+
 ### <a name="ASTEval_Literal"></a>ASTEval::Literal(node, ctx)
 
 
@@ -1249,7 +1412,10 @@ var a = node.left.eval_res,
 if(!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
 if(!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
 
-if(!_isUndef(a) && !_isUndef(b) ) {
+a = _toValue(a);
+b = _toValue(b);
+
+if( true ) {
 
        if(node.operator=="&&") node.eval_res = a && b;
        if(node.operator=="||") node.eval_res = a || b;
@@ -1281,9 +1447,13 @@ if( node.object.type == "ThisExpression" ) {
 } else {
     oo = this.evalVariable(node.object, ctx); // <-- Identifier, literal should be ok
 }
+node.object.eval_res = oo;
+
 var prop;
 if(node.computed) {
-    var prop = this.evalVariable(node.property.name, ctx);
+    if(node.property.type=="Literal") prop = node.property.value;
+    if(node.property.type=="Identifier") prop = node.property.name;
+    if(typeof(prop)=="undefined") prop = this.evalVariable(node.property, ctx);
 } else {
     prop = node.property.name;
 }
@@ -1627,7 +1797,15 @@ this._path = [];
 this._codeStr = "";
 this._currentLine = "";
 
-this.walk(node, ctx);
+try {
+    this.walk(node, ctx);
+} catch(msg) {
+    
+    console.log("**** got exception from node **** ");
+    console.log(msg);
+    
+}
+
 this.out("",true);
 ```
 
@@ -1642,21 +1820,23 @@ this.out("super");
 
 
 ```javascript
-this.nlIfNot();
 if(node.test) {
-    this.out("case ");
     this.walk(node.test, ctx);
-    this.out(" : ", true);
-} else {
-    this.out("default: ", true);
+    
+    if(node.test.eval_res == ctx._switchTest.eval_res) {
+        ctx._switchMatch = true;        
+    }
+    if(ctx._switchMatch) {
+        if(node.consequent) {
+            var me = this;
+            node.consequent.forEach( function(c) {
+                me.walk(c, ctx);
+            })
+        }        
+    }
 }
 
-if(node.consequent) {
-    var me = this;
-    node.consequent.forEach( function(c) {
-        me.walk(c, ctx);
-    })
-}
+// ctx._switchTest
 ```
 
 ### <a name="ASTEval_SwitchStatement"></a>ASTEval::SwitchStatement(node, ctx)
@@ -1664,7 +1844,27 @@ if(node.consequent) {
 
 ```javascript
 
-console.error("Switch statement is not supported...");
+this.walk( node.discriminant, ctx );
+console.log("SwitchStatement does not work properly");
+
+// Switch statment expressions...
+try {
+    var me = this;
+    ctx._switchTest = node.discriminant;
+    ctx._switchMatch = false;
+
+    for(var i=0; i<node.cases.length;i++) {
+        var myCase = node.cases[i];
+        me.walk(myCase,ctx);
+    }
+
+} catch(msg) {
+    if(msg.type=="break") {
+        
+    } else {
+        throw msg;
+    }
+}
 
 // ---> IF
 /*
@@ -1704,11 +1904,13 @@ interface SwitchStatement <: Statement {
 */
 ```
 
-### <a name="ASTEval_ThisExpression"></a>ASTEval::ThisExpression(node)
+### <a name="ASTEval_ThisExpression"></a>ASTEval::ThisExpression(node, ctx)
 
 
 ```javascript
 this.out("this");
+
+node.eval_res = this.findThis(ctx);
 ```
 
 ### <a name="ASTEval_ThrowStatement"></a>ASTEval::ThrowStatement(node, ctx)
@@ -1722,7 +1924,8 @@ this.walk( node.argument, ctx );
 
 var value = node.argument.eval_res;
 if(typeof(value)=="undefined") value = this.evalVariable( node.argument, ctx );
-this.handleException( value );
+
+throw { type : "throw", node : node, value : value };
 ```
 
 ### <a name="ASTEval_TryStatement"></a>ASTEval::TryStatement(node, ctx)
@@ -1733,8 +1936,32 @@ this.handleException( value );
 this.out("try ");
 
 // node._exceptionHandler = node;
-node._exceptionHandlerCtx = ctx;
-this.walk(node.block, ctx);
+// node._exceptionHandlerCtx = ctx;
+try {
+    this.walk(node.block, ctx);
+} catch(msg) {
+    // throw { type : "throw", node : node, value };
+    if(msg.type=="throw") {
+        
+        if (node.finalizer) {
+          this.walk(node.finalizer, ctx);
+        }
+        
+        if (node.handler) {
+            var newCtx = this.createContext(ctx);
+            // set the exception handler param
+            if(node.handler && node.handler.param.name) {
+                newCtx.variables[node.handler.param.name] = msg.value;
+            }              
+            this.walk(node.handler.body, newCtx);
+        } else {
+            throw(msg)
+        }
+        
+    } else {
+        throw(msg);
+    }
+}
 
 // Walked only in the case of an exception...
 /*
@@ -1773,9 +2000,9 @@ this.trigger("UnaryExpressionArgument", node.argument);
 this.walk(node.argument,ctx);
 if(bNeedsPar) this.out(")");
 
-var value = node.argument.eval_res || this.evalVariable( node.argument, ctx );
+var value = _toValue( node.argument.eval_res || this.evalVariable( node.argument, ctx ) );
 
-if(typeof(value) != "undefined") {
+if(true) {
     if(node.operator == "-") {
         node.eval_res = -1 * value;
     }
@@ -1903,15 +2130,15 @@ if(node.init) {
     if(node.id.name && (typeof( node.init.eval_res) != "undefined" ) ) {
         if(!ctx.variables) ctx.variables = {};
         if(ctx._varKind=="var"){
-            ctx.variables[node.id.name] = node.init.eval_res;
+            ctx.variables[node.id.name] = _wrapValue( node.init.eval_res );
         } 
         if(ctx._varKind=="let"){
             if(!ctx.letVars) ctx.letVars = {};
-            ctx.letVars[node.id.name] = node.init.eval_res;
+            ctx.letVars[node.id.name] = _wrapValue(node.init.eval_res);
         }
         if(ctx._varKind=="const"){
             if(!ctx.constVars) ctx.constVars = {};
-            ctx.constVars[node.id.name] = node.init.eval_res;
+            ctx.constVars[node.id.name] = _wrapValue(node.init.eval_res);
         }        
     }    
 } else {
@@ -1952,8 +2179,13 @@ if(!ctx) {
     return;
 }
 
-// What is going on here then...
+// walking using prev & next pointers makes detaching the process probably easier
 if(node instanceof Array) {
+
+    var firstItem = node[0];
+    if(!firstItem) return;
+    this.walk( firstItem, ctx );
+    /*
     var me = this;
     var index = 0;
     var parent = this._path[this._path.length-1];
@@ -1975,9 +2207,14 @@ if(node instanceof Array) {
         }        
     }
     delete parent._activeIndex;
-
+    */
+    
 } else {
     if(node.type) {
+        
+        // mark the current position
+        this._processingNode = node;
+        
         var runTime = {
             node : node,
             ctx : ctx
@@ -2024,11 +2261,21 @@ if(node instanceof Array) {
             if(this._break) return;
             
             this._path.pop();
-
             
+            //-- then either next or parent...
+            var next = node._next;
+            if(next) {
+                this.walk( next, ctx );
+            } else {
+                // if not... the context goes to parent
+                if(this._path.length==0) {
+
+                }
+            }
             
             // if this execution walk is over, but we have a break state available from
             // some previous execution context, continue from that...
+            /*
             if(this._path.length==0) {
                 if(this._breakState && this._breakState.path && this._breakState.path.length) {
                     var returnTo = this._breakState.path.pop();
@@ -2037,6 +2284,7 @@ if(node instanceof Array) {
                     }
                 }
             }
+            */
         } else {
             console.log("Did not find "+node.type);
             console.log(node);
@@ -2075,21 +2323,34 @@ return str;
 
 var max_cnt = 1000*1000; // <-- maximum loop count, temporary setting...
 
-while(max_cnt>0) {
-    if(node.test) {
-        this.walk(node.test,ctx);
-        if(!node.test.eval_res) {
-            break;
+
+    while(max_cnt>0) {
+        try {
+            if(node.test) {
+                this.walk(node.test,ctx);
+                if(!node.test.eval_res) {
+                    break;
+                }
+            } else {
+                // do not allow eternal loop at this point...
+                break;
+            }
+            if(node.body) {
+                this.walk(node.body,ctx);
+            }    
+            max_cnt--;
+        } catch(msg) {
+            // --> continue from here then
+            if(msg && msg.type=="continue") {
+                continue;
+            }
+            if(msg && msg.type=="break") {
+                break;
+            }
+            throw msg;
         }
-    } else {
-        // do not allow eternal loop at this point...
-        break;
     }
-    if(node.body) {
-        this.walk(node.body,ctx);
-    }    
-    max_cnt--;
-}
+
 ```
 
 ### <a name="ASTEval_WithStatement"></a>ASTEval::WithStatement(node, ctx)
