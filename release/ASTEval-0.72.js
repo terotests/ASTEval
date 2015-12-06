@@ -1752,6 +1752,7 @@
        */
       _myTrait_.SwitchStatement = function (node, ctx) {
 
+        debugger;
         this.walk(node.discriminant, ctx);
 
         // Switch statment expressions...
