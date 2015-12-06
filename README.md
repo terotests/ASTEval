@@ -1828,10 +1828,7 @@ if(node.test) {
     }
     if(ctx._switchMatch) {
         if(node.consequent) {
-            var me = this;
-            node.consequent.forEach( function(c) {
-                me.walk(c, ctx);
-            })
+            this.walk( node.consequent, ctx );
         }        
     }
 }
@@ -1853,10 +1850,7 @@ try {
     ctx._switchTest = node.discriminant;
     ctx._switchMatch = false;
 
-    for(var i=0; i<node.cases.length;i++) {
-        var myCase = node.cases[i];
-        me.walk(myCase,ctx);
-    }
+    this.walk(node.cases, ctx);
 
 } catch(msg) {
     if(msg.type=="break") {
@@ -1866,42 +1860,6 @@ try {
     }
 }
 
-// ---> IF
-/*
-this.walk(node.test, ctx);
-if(node.test.eval_res) {
-    this.walk(node.consequent,ctx);
-} else {
-    this.walk(node.alternate,ctx);
-}
-*/
-
-
-/*
-this.nlIfNot();
-this.out("switch(");
-
-this.walk( node.discriminant, ctx );
-this.out(")");
-this.out("{",true);
-
-this.indent(1);
-var me = this;
-node.cases.forEach(function(c) {
-    me.walk(c,ctx);
-})
-this.indent(-1);
-this.out("}",true);
-*/
-
-/*
-interface SwitchStatement <: Statement {
-    type: "SwitchStatement";
-    discriminant: Expression;
-    cases: [ SwitchCase ];
-    lexical: boolean;
-}
-*/
 ```
 
 ### <a name="ASTEval_ThisExpression"></a>ASTEval::ThisExpression(node, ctx)
