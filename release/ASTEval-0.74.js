@@ -1738,12 +1738,6 @@
           if (ctx._switchMatch) {
             if (node.consequent) {
               this.walk(node.consequent, ctx);
-              /*
-              var me = this;
-              node.consequent.forEach( function(c) {
-                me.walk(c, ctx);
-              })
-              */
             }
           }
         }
@@ -1767,51 +1761,11 @@
           ctx._switchMatch = false;
 
           this.walk(node.cases, ctx);
-          /*
-          for(var i=0; i<node.cases.length;i++) {
-          var myCase = node.cases[i];
-          me.walk(myCase,ctx);
-          }
-          */
         } catch (msg) {
           if (msg.type == "break") {} else {
             throw msg;
           }
         }
-
-        // ---> IF
-        /*
-        this.walk(node.test, ctx);
-        if(node.test.eval_res) {
-        this.walk(node.consequent,ctx);
-        } else {
-        this.walk(node.alternate,ctx);
-        }
-        */
-
-        /*
-        this.nlIfNot();
-        this.out("switch(");
-        this.walk( node.discriminant, ctx );
-        this.out(")");
-        this.out("{",true);
-        this.indent(1);
-        var me = this;
-        node.cases.forEach(function(c) {
-        me.walk(c,ctx);
-        })
-        this.indent(-1);
-        this.out("}",true);
-        */
-
-        /*
-        interface SwitchStatement <: Statement {
-        type: "SwitchStatement";
-        discriminant: Expression;
-        cases: [ SwitchCase ];
-        lexical: boolean;
-        }
-        */
       };
 
       /**
