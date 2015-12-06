@@ -1760,9 +1760,10 @@
           ctx._switchTest = node.discriminant;
           ctx._switchMatch = false;
 
-          node.cases.forEach(function (c) {
-            me.walk(c, ctx);
-          });
+          for (var i = 0; i < node.cases.length; i++) {
+            var myCase = node.cases[i];
+            me.walk(myCase, ctx);
+          }
         } catch (msg) {
           if (msg.type == "break") {} else {
             throw msg;
