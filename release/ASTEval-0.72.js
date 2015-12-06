@@ -1784,7 +1784,12 @@
 
         var value = node.argument.eval_res;
         if (typeof value == "undefined") value = this.evalVariable(node.argument, ctx);
-        this.handleException(value);
+
+        throw {
+          type: "throw",
+          node: node,
+          value: value
+        };
       };
 
       /**
@@ -1796,8 +1801,31 @@
         this.out("try ");
 
         // node._exceptionHandler = node;
-        node._exceptionHandlerCtx = ctx;
-        this.walk(node.block, ctx);
+        // node._exceptionHandlerCtx = ctx;
+        try {
+          this.walk(node.block, ctx);
+        } catch (msg) {
+          // throw { type : "throw", node : node, value };
+          if (msg.type == "throw") {
+
+            if (node.finalizer) {
+              this.walk(node.finalizer, ctx);
+            }
+
+            if (node.handler) {
+              var newCtx = thie.createContext(ctx);
+              // set the exception handler param
+              if (node.handler && node.handler.param.name) {
+                newCtx.variables[node.handler.param.name] = msg.value;
+              }
+              this.walk(node.handler.body, newCtx);
+            } else {
+              throw msg;
+            }
+          } else {
+            throw msg;
+          }
+        }
 
         // Walked only in the case of an exception...
         /*
