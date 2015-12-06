@@ -883,7 +883,7 @@
 
         if (!propName || !obj) return;
 
-        for (var xx in obj) {
+        obj.every(function (xx) {
           // must set the variable ...
           try {
             if (decl) {
@@ -894,17 +894,18 @@
             }
             // Then... ready to go???
             this.walk(node.body, myCtx);
+            return true;
           } catch (msg) {
             // --> continue from here then
             if (msg && msg.type == "continue") {
-              continue;
+              return true;
             }
             if (msg && msg.type == "break") {
-              break;
+              return false;
             }
             throw msg;
           }
-        }
+        });
       };
 
       /**
