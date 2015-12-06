@@ -1715,9 +1715,12 @@
 
       /**
        * @param float node
+       * @param float ctx
        */
-      _myTrait_.ThisExpression = function (node) {
+      _myTrait_.ThisExpression = function (node, ctx) {
         this.out("this");
+
+        node.eval_res = this.findThis(ctx);
       };
 
       /**
