@@ -883,17 +883,18 @@
 
         if (!propName || !obj) return;
 
+        var me = this;
         obj.every(function (xx) {
           // must set the variable ...
           try {
             if (decl) {
               // ??? declaration ???
-              this.assignTo(propName, myCtx, xx);
+              me.assignTo(propName, myCtx, xx);
             } else {
-              this.assignTo(propName, myCtx, xx);
+              me.assignTo(propName, myCtx, xx);
             }
             // Then... ready to go???
-            this.walk(node.body, myCtx);
+            me.walk(node.body, myCtx);
             return true;
           } catch (msg) {
             // --> continue from here then
