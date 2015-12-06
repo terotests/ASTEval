@@ -422,6 +422,10 @@
         this.out("break ");
         if (node.label) this.walk(node.label, ctx);
         this.out("", true);
+
+        throw {
+          type: "break"
+        };
       };
 
       /**
@@ -580,10 +584,10 @@
        * @param Object ctx
        */
       _myTrait_.ContinueStatement = function (node, ctx) {
-        this.nlIfNot();
-        this.out("continue ");
-        if (node.label) this.walk(node.label, ctx);
-        this.out("", true);
+
+        throw {
+          type: "continue"
+        };
       };
 
       /**
@@ -2098,19 +2102,30 @@
         var max_cnt = 1000 * 1000; // <-- maximum loop count, temporary setting...
 
         while (max_cnt > 0) {
-          if (node.test) {
-            this.walk(node.test, ctx);
-            if (!node.test.eval_res) {
+          try {
+            if (node.test) {
+              this.walk(node.test, ctx);
+              if (!node.test.eval_res) {
+                break;
+              }
+            } else {
+              // do not allow eternal loop at this point...
               break;
             }
-          } else {
-            // do not allow eternal loop at this point...
-            break;
+            if (node.body) {
+              this.walk(node.body, ctx);
+            }
+            max_cnt--;
+          } catch (msg) {
+            // --> continue from here then
+            if (msg && msg.type == "continue") {
+              continue;
+            }
+            if (msg && msg.type == "break") {
+              break;
+            }
+            throw msg;
           }
-          if (node.body) {
-            this.walk(node.body, ctx);
-          }
-          max_cnt--;
         }
       };
 
