@@ -1196,6 +1196,9 @@
 
         for (var n in tree) {
           if (tree.hasOwnProperty(n)) {
+            if (n == "_next") continue;
+            if (n == "_prev") continue;
+            if (n == "_parent") continue;
             var item = tree[n];
             if (item instanceof Array) {
 
