@@ -720,6 +720,7 @@
         } else {
           name = varName;
         }
+        if (typeof varName == "number") return varName;
 
         // TODO: ERROR if letvar is undefined does not work!!!!
         var letVar = this.findLetVar(name, ctx);
