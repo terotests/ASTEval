@@ -1383,7 +1383,7 @@
         var prop;
         if (node.computed) {
           if (node.property.type == "Literal") prop = node.property.value;
-          if (node.property.type == "Identifier") prop = node.property.name;
+          if (node.property.type == "Identifier") prop = node.property.eval_res;
           if (typeof prop == "undefined") prop = this.evalVariable(node.property, ctx);
         } else {
           prop = node.property.name;
