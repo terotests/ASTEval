@@ -703,6 +703,9 @@
        */
       _myTrait_.evalVariable = function (varName, ctx) {
         var name;
+
+        if (varName == null || varName == "null") return null;
+
         if (typeof varName == "object") {
           if (varName.eval_res) return varName.eval_res;
           var node = varName;
