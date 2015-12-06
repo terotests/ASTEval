@@ -138,40 +138,55 @@
        */
       _myTrait_.ArrowFunctionExpression = function (node, ctx) {
 
-        this.out("function");
-
-        if (node.generator) {
-          this.trigger("FunctionGenerator", node);
-          this.out("* ");
-        }
-
-        if (node.id && node.id.name) {
-          console.log("ERROR: ArrowFunctionExpression should not have name");
-          this.trigger("FunctionName", node);
-          this.out(" " + node.id.name + " ");
-        } else {
-          this.trigger("FunctionAnonymous", node);
-        }
-
         var me = this;
-        this.out("(");
-        var cnt = 0;
+        var bind_this = this.findThis(ctx);
+        node.eval_res = function () {
+          if (me.isKilled()) return;
+          // NOTE: if(node.generator) this.out("*");
+          //
+          var args = [],
+              arg_len = arguments.length,
+              origArgs = arguments;
+          // function ctx is the parent ctx.
 
-        node.params.forEach(function (p) {
-          if (cnt++ > 0) me.out(",");
-          me.trigger("FunctionParam", p);
-          me.walk(p, ctx);
-          if (node.defaults && node.defaults[cnt - 1]) {
-            var defP = node.defaults[cnt - 1];
-            me.out("=");
-            me.trigger("FunctionDefaultParam", defP);
-            me.walk(defP, ctx);
+          // defining the "this" is left open, perhaps only overriden when needed...
+          var fnCtx = {
+            functions: {},
+            vars: {},
+            variables: {},
+            parentCtx: ctx
+          };
+          fnCtx["this"] = bind_this;
+          var evl = new ASTEval();
+
+          for (var i = 0; i < arg_len; i++) {
+            args[i] = arguments[i];
           }
-        });
+          // Going the node body with set values or variables...
+          var i = 0;
+          node.params.forEach(function (p) {
 
-        this.out(")");
-        me.trigger("FunctionBody", node.body);
-        this.walk(node.body, ctx);
+            if (typeof origArgs[i] != "undefined") {
+              fnCtx.variables[p.name] = origArgs[i];
+            } else {
+              if (node.defaults && node.defaults[i]) {
+                me.walk(node.defaults[i], ctx);
+                fnCtx.variables[p.name] = node.defaults[i].eval_res;
+              }
+            }
+            i++;
+          });
+
+          evl.startWalk(node.body, fnCtx);
+
+          // returned value is simply
+          return fnCtx.return_value;
+        };
+
+        // the fn can then be called
+        if (node.id && node.id.name) {
+          ctx.variables[node.id.name] = node.eval_res;
+        }
       };
 
       /**
