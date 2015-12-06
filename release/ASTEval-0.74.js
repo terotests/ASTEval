@@ -177,7 +177,13 @@
             i++;
           });
 
-          evl.startWalk(node.body, fnCtx);
+          try {
+            evl.startWalk(node.body, fnCtx);
+          } catch (msg) {
+            if (msg.type == "return") {} else {
+              throw msg;
+            }
+          }
 
           if (node.expression) {
             fnCtx.return_value = node.body.eval_res;
@@ -1033,7 +1039,13 @@
             i++;
           });
 
-          evl.startWalk(node.body, fnCtx);
+          try {
+            evl.startWalk(node.body, fnCtx);
+          } catch (msg) {
+            if (msg.type == "return") {} else {
+              throw msg;
+            }
+          }
 
           // returned value is simply
           return fnCtx.return_value;
@@ -1089,8 +1101,13 @@
             }
             i++;
           });
-
-          evl.startWalk(node.body, fnCtx);
+          try {
+            evl.startWalk(node.body, fnCtx);
+          } catch (msg) {
+            if (msg.type == "return") {} else {
+              throw msg;
+            }
+          }
 
           // returned value is simply
           return fnCtx.return_value;
@@ -1637,6 +1654,9 @@
         }
 
         fnCtx.return_value = node.argument.eval_res;
+        throw {
+          type: "return"
+        };
       };
 
       /**
@@ -2289,3 +2309,9 @@
     define(__amdDefs__);
   }
 }).call(new Function("return this")());
+
+// ok
+
+// ok
+
+// ok
