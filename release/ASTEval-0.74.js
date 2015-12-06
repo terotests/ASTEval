@@ -711,7 +711,7 @@
             name = node.name;
           }
           if (node.type == "Literal") {
-            name = node.value;
+            return node.value; // ???
           }
         } else {
           name = varName;
