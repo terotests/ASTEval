@@ -1842,7 +1842,6 @@ if(node.test) {
 ```javascript
 
 this.walk( node.discriminant, ctx );
-console.log("SwitchStatement does not work properly");
 
 // Switch statment expressions...
 try {
