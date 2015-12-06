@@ -1813,7 +1813,7 @@
             }
 
             if (node.handler) {
-              var newCtx = thie.createContext(ctx);
+              var newCtx = this.createContext(ctx);
               // set the exception handler param
               if (node.handler && node.handler.param.name) {
                 newCtx.variables[node.handler.param.name] = msg.value;
