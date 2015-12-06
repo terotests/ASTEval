@@ -328,7 +328,10 @@
         if (!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
         if (!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
 
-        if (!_isUndef(a) && !_isUndef(b)) {
+        a = _toValue(a);
+        b = _toValue(b);
+
+        if (true) {
 
           // ?? should result be object with value ?
 
