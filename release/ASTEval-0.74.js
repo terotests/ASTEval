@@ -484,7 +484,7 @@
             var fnToCall = node.callee.eval_res;
             if (node.arguments) {
               node.arguments.forEach(function (n) {
-                me.walk(n);
+                me.walk(n, ctx);
                 if (typeof n.eval_res != "undefined") {
                   args.push(_toValue(n.eval_res));
                 } else {
