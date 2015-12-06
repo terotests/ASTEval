@@ -647,12 +647,15 @@
        * @param Object ctx
        */
       _myTrait_.DebuggerStatement = function (node, ctx) {
-        this.nlIfNot();
+        /*this.nlIfNot();
         this.out("debugger;");
-
         throw {
-          msg: "debugger",
-          node: node };
+        msg : "debugger",
+        node : node,
+        }
+        */
+
+        debugger;
       };
 
       /**
