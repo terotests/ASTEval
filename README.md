@@ -1454,38 +1454,6 @@ try {
 
 ```javascript
 
-if(this._options.noOutput) return;
-
-if(this._collecting) {
-    if(str) {
-        if(this._collectLine.length==0) {
-            for(var i=0; i<this._indent; i++) {
-                this._collectLine+= this._tabChar;
-            }
-        }
-        this._collectLine += str;
-    }
-    
-    if(newline) {
-        this._collectStr+=this._collectLine+"\n";
-        this._collectLine = "";
-        this._collectStr+="\n";
-    }    
-    return;
-}
-if(str) {
-    if(this._currentLine.length==0) {
-        for(var i=0; i<this._indent; i++) {
-            this._currentLine+= this._tabChar;
-        }
-    }
-    this._currentLine += str;
-}
-
-if(newline) {
-    this._codeStr+=this._currentLine+"\n";
-    this._currentLine = "";
-}
 ```
 
 ### <a name="ASTEval_prevChar"></a>ASTEval::prevChar(t)
