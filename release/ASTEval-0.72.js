@@ -1201,8 +1201,8 @@
 
               for (var i = 0; i < item.length; i++) {
                 var ii = item[i];
-                ii._next = item[i + 1];
-                ii._prev = item[i - 1];
+                if (i < item.length - 1) ii._next = item[i + 1];
+                if (i > 0) ii._prev = item[i - 1];
                 this.listify(ii, parentTree);
               }
             } else {
