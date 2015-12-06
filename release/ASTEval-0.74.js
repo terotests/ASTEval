@@ -1766,7 +1766,7 @@
           ctx._switchTest = node.discriminant;
           ctx._switchMatch = false;
 
-          this.walk(node.cases);
+          this.walk(node.cases, ctx);
           /*
           for(var i=0; i<node.cases.length;i++) {
           var myCase = node.cases[i];
