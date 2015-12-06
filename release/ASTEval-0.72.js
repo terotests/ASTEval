@@ -852,38 +852,59 @@
        * @param Object ctx
        */
       _myTrait_.ForOfStatement = function (node, ctx) {
-        this.nlIfNot();
-        this.out("for(");
+
+        var myCtx = this.createContext(ctx, true);
 
         if (node.left) {
-          this.trigger("ForOfLeft", node.left);
-          this.walk(node.left, ctx);
+          this.walk(node.left, myCtx);
+        } else {
+          return;
         }
-        this.out(" of ");
         if (node.right) {
-          this.trigger("ForOfRight", node.right);
-          this.walk(node.right, ctx);
+          this.walk(node.right, myCtx);
+        } else {
+          return;
         }
-        this.out(")");
 
-        if (node.body) {
-          this.trigger("ForOfBody", node.body);
-          var bNeedsPar = false;
-          if (node.body.type != "BlockStatement" && node.body.type.indexOf("Statement") >= 0) {
-            bNeedsPar = true;
-          }
-          if (bNeedsPar) {
-            this.out("{");
-            this.indent(1);
-          }
-          this.walk(node.body, ctx);
-          if (bNeedsPar) {
-            this.indent(-1);
-            this.out("}");
+        var obj = node.right.eval_res;
+        var propName;
+        var decl, kind; //  = "var";
+        if (node.left.type == "VariableDeclaration") {
+          decl = node.left.declarations[0];
+          kind = decl.kind;
+          propName = decl.name || decl.id.name;
+        } else {
+          if (node.left.type == "Identifier") {
+            propName = node.name;
+          } else {
+            propName = node.left.eval_res;
           }
         }
 
-        this.out("", true);
+        if (!propName || !obj) return;
+
+        for (var xx in obj) {
+          // must set the variable ...
+          try {
+            if (decl) {
+              // ??? declaration ???
+              this.assignTo(propName, myCtx, obj[xx]);
+            } else {
+              this.assignTo(propName, myCtx, obj[xx]);
+            }
+            // Then... ready to go???
+            this.walk(node.body, myCtx);
+          } catch (msg) {
+            // --> continue from here then
+            if (msg && msg.type == "continue") {
+              continue;
+            }
+            if (msg && msg.type == "break") {
+              break;
+            }
+            throw msg;
+          }
+        }
       };
 
       /**
