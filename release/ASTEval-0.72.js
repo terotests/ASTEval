@@ -179,6 +179,10 @@
 
           evl.startWalk(node.body, fnCtx);
 
+          if (node.expression) {
+            fnCtx.return_value = node.body.eval_res;
+          }
+
           // returned value is simply
           return fnCtx.return_value;
         };
