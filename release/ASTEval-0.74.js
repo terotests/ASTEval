@@ -201,8 +201,8 @@
 
         var node = assignNode;
 
-        this.walk(node.right);
-        this.walk(node.left);
+        this.walk(node.right, ctx);
+        this.walk(node.left, ctx);
 
         var value = node.right.eval_res;
         if (!_isDeclared(value)) value = this.evalVariable(node.right, ctx);
