@@ -1766,10 +1766,13 @@
           ctx._switchTest = node.discriminant;
           ctx._switchMatch = false;
 
-          for (var i = 0; i < node.cases.length; i++) {
-            var myCase = node.cases[i];
-            me.walk(myCase, ctx);
+          this.walk(node.cases);
+          /*
+          for(var i=0; i<node.cases.length;i++) {
+          var myCase = node.cases[i];
+          me.walk(myCase,ctx);
           }
+          */
         } catch (msg) {
           if (msg.type == "break") {} else {
             throw msg;
