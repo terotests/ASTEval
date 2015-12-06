@@ -1761,7 +1761,7 @@
 
         var value = node.argument.eval_res || this.evalVariable(node.argument, ctx);
 
-        if (typeof value != "undefined") {
+        if (true) {
           if (node.operator == "-") {
             node.eval_res = -1 * value;
           }
