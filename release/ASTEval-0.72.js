@@ -620,6 +620,10 @@
       _myTrait_.DebuggerStatement = function (node, ctx) {
         this.nlIfNot();
         this.out("debugger;");
+
+        throw {
+          msg: "debugger",
+          node: node };
       };
 
       /**
@@ -1625,7 +1629,14 @@
         this._codeStr = "";
         this._currentLine = "";
 
-        this.walk(node, ctx);
+        try {
+          this.walk(node, ctx);
+        } catch (msg) {
+
+          console.log("**** got exception from node **** ");
+          console.log(msg);
+        }
+
         this.out("", true);
       };
 
