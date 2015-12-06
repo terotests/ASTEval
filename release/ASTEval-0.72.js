@@ -2051,7 +2051,7 @@
                   var pa = node._parent;
                   while (pa) {
                     if (pa && pa._next) {
-
+                      console.log("starting new walk");
                       this.walk(pa._next, ctx);
                       break;
                     }
