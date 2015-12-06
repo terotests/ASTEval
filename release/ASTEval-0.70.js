@@ -1202,6 +1202,8 @@
         } else {
           oo = this.evalVariable(node.object, ctx); // <-- Identifier, literal should be ok
         }
+        node.object.eval_res = oo;
+
         var prop;
         if (node.computed) {
           var prop = this.evalVariable(node.property.name, ctx);
