@@ -1254,7 +1254,10 @@
         if (!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
         if (!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
 
-        if (!_isUndef(a) && !_isUndef(b)) {
+        a = _toValue(a);
+        b = _toValue(b);
+
+        if (true) {
 
           if (node.operator == "&&") node.eval_res = a && b;
           if (node.operator == "||") node.eval_res = a || b;
