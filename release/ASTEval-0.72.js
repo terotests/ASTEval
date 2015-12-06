@@ -1088,7 +1088,7 @@
       _myTrait_.Identifier = function (node, ctx) {
 
         if (node.name == "undefined") {
-          node.eval_res = undefined;
+          node.eval_res = _undefined;
           return;
         }
         node.eval_res = this.evalVariable(node.name, ctx);
