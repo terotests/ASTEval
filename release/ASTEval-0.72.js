@@ -1957,7 +1957,7 @@
 
         // walking using prev & next pointers makes detaching the process probably easier
         if (node instanceof Array) {
-          console.log("array walk");
+
           var firstItem = node[0];
           if (!firstItem) return;
           this.walk(firstItem, ctx);
