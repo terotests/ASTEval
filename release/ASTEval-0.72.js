@@ -825,14 +825,25 @@
 
         for (var xx in obj) {
           // must set the variable ...
-          if (decl) {
-            // ??? declaration ???
-            this.assignTo(propName, myCtx, xx);
-          } else {
-            this.assignTo(propName, myCtx, xx);
+          try {
+            if (decl) {
+              // ??? declaration ???
+              this.assignTo(propName, myCtx, xx);
+            } else {
+              this.assignTo(propName, myCtx, xx);
+            }
+            // Then... ready to go???
+            this.walk(node.body, myCtx);
+          } catch (msg) {
+            // --> continue from here then
+            if (msg && msg.type == "continue") {
+              continue;
+            }
+            if (msg && msg.type == "break") {
+              break;
+            }
+            throw msg;
           }
-          // Then... ready to go???
-          this.walk(node.body, myCtx);
         }
       };
 
@@ -890,22 +901,33 @@
         var max_cnt = 1000 * 1000; // <-- maximum loop count, temporary setting...
 
         while (max_cnt > 0) {
-          if (node.test) {
-            this.walk(node.test, myCtx);
-            if (!node.test.eval_res) {
+          try {
+            if (node.test) {
+              this.walk(node.test, myCtx);
+              if (!node.test.eval_res) {
+                break;
+              }
+            } else {
+              // do not allow eternal loop at this point...
               break;
             }
-          } else {
-            // do not allow eternal loop at this point...
-            break;
+            if (node.body) {
+              this.walk(node.body, myCtx);
+            }
+            if (node.update) {
+              this.walk(node.update, myCtx);
+            }
+            max_cnt--;
+          } catch (msg) {
+            // --> continue from here then
+            if (msg && msg.type == "continue") {
+              continue;
+            }
+            if (msg && msg.type == "break") {
+              break;
+            }
+            throw msg;
           }
-          if (node.body) {
-            this.walk(node.body, myCtx);
-          }
-          if (node.update) {
-            this.walk(node.update, myCtx);
-          }
-          max_cnt--;
         }
       };
 
