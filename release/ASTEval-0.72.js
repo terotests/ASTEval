@@ -1086,8 +1086,11 @@
        * @param Object ctx  - Context to use
        */
       _myTrait_.Identifier = function (node, ctx) {
-        // just output the identifier name...
-        this.out(node.name);
+
+        if (node.name == "undefined") {
+          node.eval_res = undefined;
+          return;
+        }
         node.eval_res = this.evalVariable(node.name, ctx);
       };
 
