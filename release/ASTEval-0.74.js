@@ -1737,10 +1737,13 @@
           }
           if (ctx._switchMatch) {
             if (node.consequent) {
+              me.walk(node.consequent);
+              /*
               var me = this;
-              node.consequent.forEach(function (c) {
+              node.consequent.forEach( function(c) {
                 me.walk(c, ctx);
-              });
+              })
+              */
             }
           }
         }
