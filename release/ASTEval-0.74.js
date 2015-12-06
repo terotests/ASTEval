@@ -581,8 +581,10 @@
         this.walk(node.test, ctx);
         if (node.test.eval_res) {
           this.walk(node.consequent, ctx);
+          node.eval_res = node.consequent.eval_res;
         } else {
           this.walk(node.alternate, ctx);
+          node.eval_res = node.alternate.eval_res;
         }
       };
 
