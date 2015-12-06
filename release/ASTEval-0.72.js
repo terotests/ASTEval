@@ -2045,19 +2045,7 @@
                 this.walk(next, ctx);
               } else {
                 // if not... the context goes to parent
-                if (this._path.length == 0) {
-                  // if there is no stack
-
-                  var pa = node._parent;
-                  while (pa) {
-                    if (pa && pa._next) {
-                      console.log("starting new walk");
-                      this.walk(pa._next, ctx);
-                      break;
-                    }
-                    pa = pa._parent;
-                  }
-                }
+                if (this._path.length == 0) {}
               }
 
               // if this execution walk is over, but we have a break state available from
