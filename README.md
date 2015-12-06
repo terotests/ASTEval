@@ -256,7 +256,15 @@ node.eval_res = function() {
         i++;
     });
     
-    evl.startWalk(node.body, fnCtx);
+    try {
+        evl.startWalk(node.body, fnCtx);
+    } catch(msg) {
+        if(msg.type=="return") {
+            // ok
+        } else {
+            throw msg;
+        }
+    }
     
     if(node.expression) {
         fnCtx.return_value = node.body.eval_res;
@@ -274,16 +282,15 @@ if(node.id && node.id.name) {
 
 ```
 
-### <a name="ASTEval_AssignmentExpression"></a>ASTEval::AssignmentExpression(node, ctx)
+### <a name="ASTEval_AssignmentExpression"></a>ASTEval::AssignmentExpression(assignNode, ctx)
 
 
 ```javascript
 
-this.trigger("AssigmentLeft", node.left);
-this.walk(node.left, ctx);
-this.out(" "+node.operator+" ");
-this.trigger("AssigmentRight", node.right);
+var node = assignNode;
+
 this.walk(node.right, ctx);
+this.walk(node.left, ctx);
 
 var value = node.right.eval_res;
 if(!_isDeclared(value)) value = this.evalVariable(node.right, ctx);
@@ -314,9 +321,11 @@ function node_assign(node, ctx, value) {
         }
         if(obj && prop) {
             obj[prop] = _wrapValue( value );
+            assignNode.eval_res = _wrapValue( value );
         }
         return;
     }
+    assignNode.eval_res = _wrapValue( value );
     me.assignTo(node.name, ctx, value);    
 }
 
@@ -558,6 +567,7 @@ if(node.callee) {
         var fnToCall = node.callee.eval_res;
         if(node.arguments) {
             node.arguments.forEach(function(n) {
+                me.walk(n,ctx);
                 if(typeof( n.eval_res ) != "undefined") {
                     args.push(_toValue(n.eval_res));
                 } else {
@@ -651,8 +661,10 @@ if(node.body) {
 this.walk(node.test, ctx);
 if(node.test.eval_res) {
     this.walk(node.consequent,ctx);
+    node.eval_res = node.consequent.eval_res;
 } else {
     this.walk(node.alternate,ctx);
+    node.eval_res = node.alternate.eval_res;
 }
 
 ```
@@ -721,13 +733,16 @@ return newCtx;
 
 
 ```javascript
-this.nlIfNot();
+/*this.nlIfNot();
 this.out("debugger;");
 
 throw {
     msg : "debugger",
     node : node,
 }
+*/
+
+debugger;
 ```
 
 ### <a name="ASTEval_DoWhileStatement"></a>ASTEval::DoWhileStatement(node, ctx)
@@ -781,6 +796,9 @@ this._collecting = false;
 
 ```javascript
 var name;
+
+if(varName==null || varName=="null") return null;
+
 if(typeof(varName)=="object") {
     if(varName.eval_res) return varName.eval_res;
     var node = varName;
@@ -788,11 +806,12 @@ if(typeof(varName)=="object") {
         name = node.name;
     }
     if( node.type == "Literal") {
-        name = node.value;
+        return node.value; // ???
     }    
 } else {
     name = varName;
 }
+if(typeof(varName)=="number") return varName;
 
 // TODO: ERROR if letvar is undefined does not work!!!!
 var letVar = this.findLetVar(name, ctx);
@@ -1091,7 +1110,15 @@ node.eval_res = function() {
         i++;
     });
     
-    evl.startWalk(node.body, fnCtx);
+    try {
+        evl.startWalk(node.body, fnCtx);
+    } catch(msg) {
+        if(msg.type=="return") {
+            // ok
+        } else {
+            throw msg;
+        }
+    }
     
     // returned value is simply
     return fnCtx.return_value;
@@ -1143,8 +1170,15 @@ node.eval_res = function() {
         }
         i++;
     });
-    
-    evl.startWalk(node.body, fnCtx);
+    try {
+        evl.startWalk(node.body, fnCtx);
+    } catch(msg) {
+        if(msg.type=="return") {
+            // ok
+        } else {
+            throw msg;
+        }
+    }
     
     // returned value is simply
     return fnCtx.return_value;
@@ -1452,7 +1486,7 @@ node.object.eval_res = oo;
 var prop;
 if(node.computed) {
     if(node.property.type=="Literal") prop = node.property.value;
-    if(node.property.type=="Identifier") prop = node.property.name;
+    if(node.property.type=="Identifier") prop = node.property.eval_res;
     if(typeof(prop)=="undefined") prop = this.evalVariable(node.property, ctx);
 } else {
     prop = node.property.name;
@@ -1715,6 +1749,7 @@ if(fnCtx.block) {
 }
 
 fnCtx.return_value = node.argument.eval_res;
+throw { type : "return" };
 ```
 
 ### <a name="ASTEval_SequenceExpression"></a>ASTEval::SequenceExpression(node, ctx)
@@ -1797,15 +1832,7 @@ this._path = [];
 this._codeStr = "";
 this._currentLine = "";
 
-try {
-    this.walk(node, ctx);
-} catch(msg) {
-    
-    console.log("**** got exception from node **** ");
-    console.log(msg);
-    
-}
-
+this.walk(node, ctx);
 this.out("",true);
 ```
 
