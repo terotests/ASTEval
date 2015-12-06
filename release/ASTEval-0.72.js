@@ -607,12 +607,16 @@
           pCtx = pCtx.parentCtx;
         }
 
-        Object.defineProperty(newCtx, "variables", {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: pCtx.variables
-        });
+        if (isBlock) {
+          Object.defineProperty(newCtx, "variables", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: pCtx.variables
+          });
+        } else {
+          newCtx.variables = {};
+        }
 
         return newCtx;
       };
