@@ -888,9 +888,9 @@
           try {
             if (decl) {
               // ??? declaration ???
-              this.assignTo(propName, myCtx, obj[xx]);
+              this.assignTo(propName, myCtx, xx);
             } else {
-              this.assignTo(propName, myCtx, obj[xx]);
+              this.assignTo(propName, myCtx, xx);
             }
             // Then... ready to go???
             this.walk(node.body, myCtx);
