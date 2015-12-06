@@ -1752,7 +1752,6 @@
        */
       _myTrait_.SwitchStatement = function (node, ctx) {
 
-        debugger;
         this.walk(node.discriminant, ctx);
 
         // Switch statment expressions...
@@ -1760,7 +1759,7 @@
           var me = this;
           ctx._switchTest = node.discriminant;
           ctx._switchMatch = false;
-          console.log("Switch test value ", node.discriminant.eval_res);
+
           node.cases.forEach(function (c) {
             me.walk(c, ctx);
           });
