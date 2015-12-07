@@ -1369,25 +1369,34 @@
       _myTrait_.LogicalExpression = function (node, ctx) {
 
         this.walk(node.left, ctx);
-        this.walk(node.right, ctx);
 
-        // evaluate the binary expression
-        var a = node.left.eval_res,
-            b = node.right.eval_res;
-
+        var a = node.left.eval_res;
         if (!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
-        if (!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
 
         a = _toValue(a);
+
+        if (node.operator == "&&") {
+          if (!a) {
+            node.eval_res = a;
+            return;
+          }
+        }
+
+        if (node.operator == "||") {
+          if (a) {
+            node.eval_res = a;
+            return;
+          }
+        }
+
+        // evaluate the right expression
+        this.walk(node.right, ctx);
+
+        var b = node.right.eval_res;
+        if (!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
         b = _toValue(b);
 
-        if (true) {
-
-          if (node.operator == "&&") node.eval_res = a && b;
-          if (node.operator == "||") node.eval_res = a || b;
-        } else {
-          console.error("Undefined variable in BinaryExpression");
-        }
+        node.eval_res = b;
       };
 
       /**
