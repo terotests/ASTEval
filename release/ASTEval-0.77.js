@@ -1938,8 +1938,33 @@
             node.eval_res = +value;
           }
           if (node.operator == "delete") {
-            // node.eval_res = +value;
-            console.error("Delete unary operator not defined");
+            var argNode = node.argument;
+            if (argNode.type == "MemberExpression") {
+              var obj, prop;
+              if (typeof argNode.object.eval_res != "undefined") {
+                obj = argNode.object.eval_res;
+              } else {
+                obj = this.evalVariable(argNode.object, ctx);
+              }
+              if (argNode.computed) {
+                if (typeof argNode.property.eval_res != "undefined") {
+                  // --> Assigment
+                  prop = argNode.property.eval_res; // me.evalVariable( node.property.eval_res, ctx ) ;
+                } else {
+                  prop = this.evalVariable(argNode.property.name, ctx);
+                }
+              } else {
+                prop = argNode.property.name;
+              }
+              if (obj && prop) {
+                node.eval_res = delete obj[prop];
+              } else {
+                node.eval_res = false;
+              }
+              return;
+            } else {
+              node.eval_res = delete window[value];
+            }
           }
           if (node.operator == "typeof") {
             // node.eval_res = +value;
