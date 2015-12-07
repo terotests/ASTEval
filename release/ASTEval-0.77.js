@@ -477,10 +477,12 @@
           if (node.arguments) {
             var me = this,
                 cnt = 0;
-            node.arguments.forEach(function (n) {
-              if (cnt++ > 0) me.out(", ");
-              me.walk(n, ctx);
+            node.arguments.walk(n, ctx);
+            /*forEach(function(n) {
+            if(cnt++>0) me.out(", ");
+            me.walk(n,ctx); 
             });
+            */
           }
           this.out(")");
 
@@ -492,7 +494,7 @@
             var fnToCall = node.callee.eval_res;
             if (node.arguments) {
               node.arguments.forEach(function (n) {
-                me.walk(n, ctx);
+                // me.walk(n,ctx);
                 if (typeof n.eval_res != "undefined") {
                   args.push(_toValue(n.eval_res));
                 } else {
@@ -504,7 +506,7 @@
 
             var this_pointer = ctx["this"]; // <- or global this perhaps
             if (node.callee.type == "MemberExpression") {
-              this.walk(node.callee, ctx);
+              // this.walk(node.callee, ctx);
               this_pointer = node.callee.object.eval_res;
             }
             if (node.callee.type == "ThisExpression") {
