@@ -477,7 +477,7 @@
           if (node.arguments) {
             var me = this,
                 cnt = 0;
-            node.arguments.walk(n, ctx);
+            this.walk(node.arguments, ctx);
             /*forEach(function(n) {
             if(cnt++>0) me.out(", ");
             me.walk(n,ctx); 
