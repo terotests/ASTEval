@@ -1068,7 +1068,7 @@
           // returned value is simply
           return fnCtx.return_value;
         };
-
+        node.eval_res.__$$pLength__ = node.params.length;
         // the fn can then be called
         if (node.id && node.id.name) {
           ctx.variables[node.id.name] = node.eval_res;
@@ -1131,6 +1131,9 @@
           // returned value is simply
           return fnCtx.return_value;
         };
+
+        // TODO: disallow rest param...
+        node.eval_res.__$$pLength__ = node.params.length;
 
         // the fn can then be called
         if (node.id && node.id.name) {
@@ -1439,7 +1442,11 @@
 
         if (!_isUndef(oo)) {
           try {
-            node.eval_res = oo[prop];
+            if (prop == "length" && typeof oo == "function" && typeof oo.__$$pLength__ != "undefined") {
+              node.eval_res = oo.__$$pLength__;
+            } else {
+              node.eval_res = oo[prop];
+            }
           } catch (e) {}
         }
       };
