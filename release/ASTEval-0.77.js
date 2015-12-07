@@ -609,7 +609,7 @@
               for (var i = 0; i < item.length; i++) {
                 var ii = item[i];
                 if (typeof ii == "object") {
-                  this.collectVarsAndFns(ii, tree);
+                  this.collectVarsAndFns(ii, ctx, cb);
                 }
               }
             } else {
