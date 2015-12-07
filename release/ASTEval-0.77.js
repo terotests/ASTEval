@@ -745,10 +745,22 @@
           } catch (msg) {
             // --> continue from here then
             if (msg && msg.type == "continue") {
-              continue;
+              if (msg.label && msg.label.name) {
+                if (node._label && node._label.name == msg.label.name) {
+                  continue;
+                }
+              } else {
+                continue;
+              }
             }
             if (msg && msg.type == "break") {
-              break;
+              if (msg.label && msg.label.name) {
+                if (node._label && node._label.name == msg.label.name) {
+                  break;
+                }
+              } else {
+                break;
+              }
             }
             throw msg;
           }
@@ -1049,10 +1061,22 @@
           } catch (msg) {
             // --> continue from here then
             if (msg && msg.type == "continue") {
-              continue;
+              if (msg.label && msg.label.name) {
+                if (node._label && node._label.name == msg.label.name) {
+                  continue;
+                }
+              } else {
+                continue;
+              }
             }
             if (msg && msg.type == "break") {
-              break;
+              if (msg.label && msg.label.name) {
+                if (node._label && node._label.name == msg.label.name) {
+                  break;
+                }
+              } else {
+                break;
+              }
             }
             throw msg;
           }
@@ -2406,11 +2430,24 @@
             max_cnt--;
           } catch (msg) {
             // --> continue from here then
+
             if (msg && msg.type == "continue") {
-              continue;
+              if (msg.label && msg.label.name) {
+                if (node._label && node._label.name == msg.label.name) {
+                  continue;
+                }
+              } else {
+                continue;
+              }
             }
             if (msg && msg.type == "break") {
-              break;
+              if (msg.label && msg.label.name) {
+                if (node._label && node._label.name == msg.label.name) {
+                  break;
+                }
+              } else {
+                break;
+              }
             }
             throw msg;
           }
