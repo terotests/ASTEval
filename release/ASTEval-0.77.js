@@ -668,7 +668,7 @@
       _myTrait_.ContinueStatement = function (node, ctx) {
 
         throw {
-          type: "break",
+          type: "continue",
           label: node.label
         };
       };
