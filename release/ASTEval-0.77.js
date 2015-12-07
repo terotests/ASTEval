@@ -598,13 +598,13 @@
           return;
         }
         for (var n in node) {
-          if (tree.hasOwnProperty(n)) {
+          if (node.hasOwnProperty(n)) {
             if (n == "_next") continue;
             if (n == "_prev") continue;
             if (n == "_parent") continue;
             if (n == "range") continue;
             if (n == "comments") continue;
-            var item = tree[n];
+            var item = node[n];
             if (item instanceof Array) {
               for (var i = 0; i < item.length; i++) {
                 var ii = item[i];
