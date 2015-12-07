@@ -231,7 +231,8 @@
             }
             if (node.computed) {
               if (typeof node.property.eval_res != "undefined") {
-                prop = me.evalVariable(node.property.eval_res, ctx);
+                // --> Assigment
+                prop = node.property.eval_res; // me.evalVariable( node.property.eval_res, ctx ) ;
               } else {
                 prop = me.evalVariable(node.property.name, ctx);
               }
@@ -1975,7 +1976,7 @@
             }
             if (node.computed) {
               if (typeof node.property.eval_res != "undefined") {
-                prop = this.evalVariable(node.property.eval_res, ctx);
+                prop = node.property.eval_res; // this.evalVariable( node.property.eval_res, ctx ) ;
               } else {
                 prop = this.evalVariable(node.property.name, ctx);
               }
