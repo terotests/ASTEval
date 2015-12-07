@@ -1063,9 +1063,15 @@
             if (msg && msg.type == "continue") {
               if (msg.label && msg.label.name) {
                 if (node._label && node._label.name == msg.label.name) {
+                  if (node.update) {
+                    this.walk(node.update, myCtx);
+                  }
                   continue;
                 }
               } else {
+                if (node.update) {
+                  this.walk(node.update, myCtx);
+                }
                 continue;
               }
             }
