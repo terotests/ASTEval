@@ -239,7 +239,7 @@
             } else {
               prop = node.property.name;
             }
-            if (obj && prop) {
+            if (obj && typeof prop != "undefined") {
               obj[prop] = _wrapValue(value);
               assignNode.eval_res = _wrapValue(value);
             }
