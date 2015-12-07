@@ -1045,6 +1045,7 @@
             if (typeof origArgs[i] != "undefined") {
               fnCtx.variables[p.name] = origArgs[i];
             } else {
+              fnCtx.variables[p.name] = _undefined;
               if (node.defaults && node.defaults[i]) {
                 me.walk(node.defaults[i], ctx);
                 fnCtx.variables[p.name] = node.defaults[i].eval_res;
@@ -1104,7 +1105,7 @@
           // Going the node body with set values or variables...
           var i = 0;
           node.params.forEach(function (p) {
-            debugger;
+
             if (typeof origArgs[i] != "undefined") {
               fnCtx.variables[p.name] = origArgs[i];
             } else {
