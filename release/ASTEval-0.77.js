@@ -452,7 +452,8 @@
         this.out("", true);
 
         throw {
-          type: "break"
+          type: "break",
+          label: node.label
         };
       };
 
@@ -667,7 +668,8 @@
       _myTrait_.ContinueStatement = function (node, ctx) {
 
         throw {
-          type: "continue"
+          type: "break",
+          label: node.label
         };
       };
 
@@ -1361,12 +1363,13 @@
        * @param Object ctx
        */
       _myTrait_.LabeledStatement = function (node, ctx) {
-        this.nlIfNot();
         this.walk(node.label, ctx);
-        this.out(":", true);
-        this.indent(1);
-        if (node.body) this.walk(node.body, ctx);
-        this.indent(-1);
+        if (node.body) {
+          if (node.label && node.label) {
+            node.body._label = node.label;
+          }
+          this.walk(node.body, ctx);
+        }
       };
 
       /**
