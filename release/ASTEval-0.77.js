@@ -1828,8 +1828,68 @@
               ctx.variables[d.id.name] = _undefined;
             });
           }
+
           if (node.type == "FunctionDeclaration") {
-            me.walk(node, ctx);
+
+            node.eval_res = function () {
+
+              if (me.isKilled()) return;
+
+              // NOTE: if(node.generator) this.out("*");
+              //
+              var args = [],
+                  arg_len = arguments.length,
+                  origArgs = arguments;
+              // function ctx is the parent ctx.
+
+              // defining the "this" is left open, perhaps only overriden when needed...
+              var fnCtx = {
+                functions: {},
+                vars: {},
+                variables: {},
+                parentCtx: ctx
+              };
+              fnCtx["this"] = this;
+              fnCtx.variables["arguments"] = arguments;
+              var evl = new ASTEval();
+
+              for (var i = 0; i < arg_len; i++) {
+                args[i] = arguments[i];
+              }
+              // Going the node body with set values or variables...
+              var i = 0;
+              node.params.forEach(function (p) {
+
+                if (typeof origArgs[i] != "undefined") {
+                  fnCtx.variables[p.name] = origArgs[i];
+                } else {
+                  fnCtx.variables[p.name] = _undefined;
+                  if (node.defaults && node.defaults[i]) {
+                    me.walk(node.defaults[i], ctx);
+                    fnCtx.variables[p.name] = node.defaults[i].eval_res;
+                  }
+                }
+                i++;
+              });
+
+              try {
+                evl.startWalk(node.body, fnCtx);
+              } catch (msg) {
+                if (msg.type == "return") {} else {
+                  throw msg;
+                }
+              }
+
+              // returned value is simply
+              return fnCtx.return_value;
+            };
+            node.eval_res.__$$pLength__ = node.params.length;
+            // the fn can then be called
+            if (node.id && node.id.name) {
+              ctx.variables[node.id.name] = node.eval_res;
+            }
+
+            return;
           }
           //console.log("Found variable or fn declaration");
           //console.log(node);
@@ -2427,6 +2487,8 @@
     define(__amdDefs__);
   }
 }).call(new Function("return this")());
+
+// ok
 
 // ok
 
