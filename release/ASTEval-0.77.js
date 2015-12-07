@@ -1826,7 +1826,7 @@
             });
           }
           if (node.type == "FunctionDeclaration") {
-            me.walk(node);
+            me.walk(node, ctx);
           }
           //console.log("Found variable or fn declaration");
           //console.log(node);
