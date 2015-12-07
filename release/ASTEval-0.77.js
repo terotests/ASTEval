@@ -380,6 +380,7 @@
           if (node.operator == "===") node.eval_res = a === b;
           if (node.operator == "!==") node.eval_res = a !== b;
           if (node.operator == "%") node.eval_res = a % b;
+          if (node.operator == "instanceof") node.eval_res = a instanceof b;
         } else {
           console.error("Undefined variable in BinaryExpression");
         }
