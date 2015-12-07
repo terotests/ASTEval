@@ -1676,7 +1676,11 @@
           }
         }
 
-        fnCtx.return_value = node.argument.eval_res;
+        if (node.argument) {
+          fnCtx.return_value = node.argument.eval_res;
+        } else {
+          fnCtx.return_value = _undefined;
+        }
         throw {
           type: "return"
         };
