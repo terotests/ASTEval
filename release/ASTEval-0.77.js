@@ -1818,9 +1818,18 @@
         this._codeStr = "";
         this._currentLine = "";
 
+        var me = this;
         this.collectVarsAndFns(node, ctx, function (node) {
-          console.log("Found variable or fn declaration");
-          console.log(node);
+          if (node.type == "VariableDeclaration") {
+            node.declarations.forEach(function (d) {
+              ctx.variables[d.id.name] = _undefined;
+            });
+          }
+          if (node.type == "FunctionDeclaration") {
+            me.walk(node);
+          }
+          //console.log("Found variable or fn declaration");
+          //console.log(node);
         });
         this.walk(node, ctx);
         this.out("", true);
