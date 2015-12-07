@@ -585,6 +585,8 @@
         if (!node) return;
         if (!node.type) return;
 
+        if (node._fnc) return;
+
         if (node.type == "FunctionExpression") {
           return;
         }
@@ -597,6 +599,7 @@
           cb(node);
           return;
         }
+        node._fnc = true;
         for (var n in node) {
           if (node.hasOwnProperty(n)) {
             if (n == "_next") continue;
