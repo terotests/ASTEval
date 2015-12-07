@@ -577,6 +577,51 @@
       };
 
       /**
+       * @param Object node  - AST node to start from
+       * @param Object ctx  - Context to save the findings...
+       * @param Function  cb  - callback when found
+       */
+      _myTrait_.collectVarsAndFns = function (node, ctx, cb) {
+        if (!node) return;
+        if (!node.type) return;
+
+        if (node.type == "FunctionExpression") {
+          return;
+        }
+
+        if (node.type == "FunctionDeclaration") {
+          cb(node);
+          return;
+        }
+        if (node.type == "VariableDeclaration") {
+          cb(node);
+          return;
+        }
+        for (var n in node) {
+          if (tree.hasOwnProperty(n)) {
+            if (n == "_next") continue;
+            if (n == "_prev") continue;
+            if (n == "_parent") continue;
+            if (n == "range") continue;
+            if (n == "comments") continue;
+            var item = tree[n];
+            if (item instanceof Array) {
+              for (var i = 0; i < item.length; i++) {
+                var ii = item[i];
+                if (typeof ii == "object") {
+                  this.collectVarsAndFns(ii, tree);
+                }
+              }
+            } else {
+              if (typeof item == "object") {
+                this.collectVarsAndFns(item, ctx, cb);
+              }
+            }
+          }
+        }
+      };
+
+      /**
        * @param Object node
        * @param Object ctx
        */
@@ -1773,6 +1818,10 @@
         this._codeStr = "";
         this._currentLine = "";
 
+        this.collectVarsAndFns(node, ctx, function (node) {
+          console.log("Found variable or fn declaration");
+          console.log(node);
+        });
         this.walk(node, ctx);
         this.out("", true);
       };
