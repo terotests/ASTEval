@@ -365,6 +365,7 @@
         if (node.operator == "!==") return node.eval_res = a !== b;
         if (node.operator == "%") return node.eval_res = a % b;
         if (node.operator == "instanceof") return node.eval_res = a instanceof b;
+        if (node.operator == "in") return node.eval_res = a in b;
 
         console.error("Undefined variable " + node.operator + " in BinaryExpression");
       };
