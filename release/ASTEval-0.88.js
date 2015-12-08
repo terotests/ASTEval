@@ -1712,6 +1712,11 @@
               // --> there is no this pointer for the functions
               // fnToCall.__newTarget__ = fnToCall;
 
+              if (!me.canAccess(fnToCall)) {
+                node.eval_res = _undefined;
+                return;
+              }
+
               var newObj;
               if (a.length == 0) newObj = new fnToCall();
               if (a.length == 1) newObj = new fnToCall(a[0]);
