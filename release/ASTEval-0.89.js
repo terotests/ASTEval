@@ -1711,8 +1711,9 @@
        * @param float node
        * @param float ctx
        * @param float value
+       * @param float assignNode
        */
-      _myTrait_.node_assign = function (node, ctx, value) {
+      _myTrait_.node_assign = function (node, ctx, value, assignNode) {
         if (!this.canAccess(value)) {
           assignNode.eval_res = _undefined;
           return;
