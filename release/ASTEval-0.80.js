@@ -78,6 +78,13 @@
       // Initialize static variables here...
 
       /**
+       * @param float t
+       */
+      _myTrait_._getUndefined = function (t) {
+        return _undefined;
+      };
+
+      /**
        * @param Object node
        * @param Object ctx
        */
