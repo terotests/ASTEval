@@ -2339,45 +2339,18 @@
         var value = node.argument.eval_value;
         if (typeof value == "undefined") value = this.evalVariable(node.argument, ctx);
 
-        var me = this;
-
-        function node_assign(node, ctx, value) {
-          if (node.type == "MemberExpression") {
-            var obj, prop;
-            if (typeof node.object.eval_res != "undefined") {
-              obj = node.object.eval_res;
-            } else {
-              obj = this.evalVariable(node.object, ctx);
-            }
-            if (node.computed) {
-              if (typeof node.property.eval_res != "undefined") {
-                prop = node.property.eval_res; // this.evalVariable( node.property.eval_res, ctx ) ;
-              } else {
-                prop = this.evalVariable(node.property.name, ctx);
-              }
-            } else {
-              prop = node.property.name;
-            }
-            if (obj && prop) {
-              obj[prop] = value;
-            }
-            return;
-          }
-          me.assignTo(node, ctx, value);
-        }
-
         if (node.operator == "++" && typeof value != "undefined") {
           if (!node.prefix) node.eval_res = value;
           value++;
           if (node.prefix) node.eval_res = value;
-          node_assign(node.argument, ctx, value);
+          this.node_assign_update(node.argument, ctx, value);
           return;
         }
         if (node.operator == "--" && typeof value != "undefined") {
           if (!node.prefix) node.eval_res = value;
           value--;
           if (node.prefix) node.eval_res = value;
-          node_assign(node.argument, ctx, value);
+          this.node_assign_update(node.argument, ctx, value);
         }
       };
 
