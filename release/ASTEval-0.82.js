@@ -2123,7 +2123,16 @@
         } catch (msg) {
           // throw { type : "throw", node : node, value };
           var eValue;
-          if (msg.type == "throw") {
+
+          // if some system message...
+          if (msg && msg.type) {
+            if (msg.type == "return" || msg.type == "break" || msg.type == "continue") {
+              throw msg;
+              return;
+            }
+          }
+
+          if (msg && msg.type == "throw") {
             eValue = msg.value;
           } else {
             eValue = msg;
