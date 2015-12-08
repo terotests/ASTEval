@@ -172,7 +172,7 @@
           // Going the node body with set values or variables...
           var i = 0;
           node.params.forEach(function (p) {
-            if (p.type = "RestElement") {
+            if (p.type == "RestElement") {
               // should be the rest of the string...
               fnCtx.variables[p.name] = origArgs.slice(i);
               i++;
@@ -1160,7 +1160,7 @@
           // Going the node body with set values or variables...
           var i = 0;
           node.params.forEach(function (p) {
-            if (p.type = "RestElement") {
+            if (p.type == "RestElement") {
               // should be the rest of the string...
               fnCtx.variables[p.name] = origArgs.slice(i);
               i++;
@@ -1233,7 +1233,7 @@
           // Going the node body with set values or variables...
           var i = 0;
           node.params.forEach(function (p) {
-            if (p.type = "RestElement") {
+            if (p.type == "RestElement") {
               // should be the rest of the string...
               fnCtx.variables[p.name] = origArgs.slice(i);
               i++;
