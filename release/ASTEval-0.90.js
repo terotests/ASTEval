@@ -759,20 +759,21 @@
       };
 
       /**
-       * @param String name
+       * @param String varName
        * @param float ctx
        */
-      _myTrait_.evalVariable = function (name, ctx) {
-        if (name == null || name == "null") return null;
+      _myTrait_.evalVariable = function (varName, ctx) {
+        var name;
+        if (varName == null || varName == "null") return null;
         if (!ctx) return _undefined;
 
-        if (typeof name == "number") return name;
+        if (typeof varName == "number") return name;
 
-        if (typeof name == "object") {
-          if (typeof name.eval_res != "undefined") return name.eval_res;
-          var node = name;
+        if (typeof varName == "object") {
+          if (typeof varName.eval_res != "undefined") return varName.eval_res;
+          var node = varName;
           if (node.type == "Identifier") {
-            name = node.name;
+            name = varName.name;
           } else {
             if (node.type == "Literal") {
               return node.value;
@@ -780,7 +781,9 @@
               return _undefined;
             }
           }
-        } else {}
+        } else {
+          name = varName;
+        }
 
         if (ctx.letVars && _isDeclared(ctx.letVars[name])) return ctx.letVars[name];
         if (ctx.constVars && _isDeclared(ctx.constVars[name])) return ctx.constVars[name];
