@@ -528,8 +528,8 @@
             if (node.callee.type == "MemberExpression") {
               // this.walk(node.callee, ctx);
               this_pointer = node.callee.object.eval_res;
-              if (!this.canAccess(object.eval_res)) {
-                console.error("Access denied for object ", object.eval_res);
+              if (!this.canAccess(this_pointer)) {
+                console.error("Access denied for object ", this_pointer);
                 node.eval_res = _undefined;
                 return;
               }
