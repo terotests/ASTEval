@@ -366,7 +366,7 @@
         if (node.operator == "%") return node.eval_res = a % b;
         if (node.operator == "instanceof") return node.eval_res = a instanceof b;
 
-        console.error("Undefined variable in BinaryExpression");
+        console.error("Undefined variable " + node.operator + " in BinaryExpression");
       };
 
       /**
@@ -2424,7 +2424,7 @@
       _myTrait_.walk = function (node, ctx, newLine) {
 
         if (!node) return;
-        // if(this.isKilled()) return;
+        if (this.isKilled()) return;
 
         if (!ctx) {
           console.log("ERROR: no context defined for ", node);
