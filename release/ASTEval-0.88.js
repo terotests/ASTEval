@@ -1983,6 +1983,8 @@
         this._codeStr = "";
         this._currentLine = "";
 
+        this.listify(node);
+
         var me = this;
         this.collectVarsAndFns(node, ctx, function (node) {
           if (node.type == "VariableDeclaration") {

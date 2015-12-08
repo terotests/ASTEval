@@ -324,7 +324,7 @@ left_value = _toValue( left_value );
 
 var me = this;
 function node_assign(node, ctx, value) {
-    if(!this.canAccess(value)) {
+    if(!me.canAccess(value)) {
         console.error("Access denied for object ", value);
         assignNode.eval_res = _undefined;
         return;
@@ -337,7 +337,7 @@ function node_assign(node, ctx, value) {
         } else {
             obj = me.evalVariable(node.object, ctx);
         }
-        if(!this.canAccess(obj)) {
+        if(!me.canAccess(obj)) {
             console.error("Access denied for object ", obj);
             assignNode.eval_res = _undefined;
             return;
@@ -1804,6 +1804,11 @@ if(node.callee) {
             
             // --> there is no this pointer for the functions
             // fnToCall.__newTarget__ = fnToCall;
+            
+            if(!me.canAccess(fnToCall)) {
+                node.eval_res = _undefined;
+                return;
+            }
             
             var newObj;
             if(a.length==0) newObj = new fnToCall();
