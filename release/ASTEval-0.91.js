@@ -1729,6 +1729,36 @@
       };
 
       /**
+       * @param float node
+       * @param float ctx
+       * @param float value
+       */
+      _myTrait_.node_assign_update = function (node, ctx, value) {
+        if (node.type == "MemberExpression") {
+          var obj, prop;
+          if (typeof node.object.eval_res != "undefined") {
+            obj = node.object.eval_res;
+          } else {
+            obj = this.evalVariable(node.object, ctx);
+          }
+          if (node.computed) {
+            if (typeof node.property.eval_res != "undefined") {
+              prop = node.property.eval_res; // this.evalVariable( node.property.eval_res, ctx ) ;
+            } else {
+              prop = this.evalVariable(node.property.name, ctx);
+            }
+          } else {
+            prop = node.property.name;
+          }
+          if (obj && prop) {
+            obj[prop] = value;
+          }
+          return;
+        }
+        this.assignTo(node, ctx, value);
+      };
+
+      /**
        * @param Object node
        * @param float ctx
        */
