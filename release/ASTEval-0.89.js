@@ -2315,9 +2315,7 @@
        */
       _myTrait_.UpdateExpression = function (node, ctx) {
 
-        this.trigger("UpdateExpressionArgument", node.argument);
         this.walk(node.argument, ctx);
-        this.out(node.operator);
 
         var value = node.argument.eval_value;
         if (typeof value == "undefined") value = this.evalVariable(node.argument, ctx);
@@ -2353,6 +2351,7 @@
           value++;
           if (node.prefix) node.eval_res = value;
           node_assign(node.argument, ctx, value);
+          return;
         }
         if (node.operator == "--" && typeof value != "undefined") {
           if (!node.prefix) node.eval_res = value;
