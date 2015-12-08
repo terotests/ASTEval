@@ -797,6 +797,13 @@
         if (ctx.constVars && _isDeclared(ctx.constVars[name])) return ctx.constVars[name];
         if (ctx.variables && _isDeclared(ctx.variables[name])) return ctx.variables[name];
 
+        if (ctx.parentCtx) {
+          var pc = ctx.parentCtx;
+          if (pc.letVars && _isDeclared(pc.letVars[name])) return pc.letVars[name];
+          if (pc.constVars && _isDeclared(pc.constVars[name])) return pc.constVars[name];
+          if (pc.variables && _isDeclared(pc.variables[name])) return pc.variables[name];
+        }
+
         // TODO: ERROR if letvar is undefined does not work!!!!
         var letVar = this.findLetVar(name, ctx);
         if (_isDeclared(letVar)) {
