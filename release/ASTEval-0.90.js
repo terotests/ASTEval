@@ -794,6 +794,9 @@
         }
 
         // TODO: ERROR if letvar is undefined does not work!!!!
+
+        console.log("-slow find-");
+
         var letVar = this.findLetVar(name, ctx);
         if (_isDeclared(letVar)) {
           if (_isUndef(letVar)) return undefined;
