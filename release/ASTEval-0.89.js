@@ -398,11 +398,7 @@
           value: pCtx.variables
         });
 
-        this.out(" {", true);
-        this.indent(1);
         this.walk(node.body, blockCtx, true);
-        this.indent(-1);
-        this.out("}");
       };
 
       /**
