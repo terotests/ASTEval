@@ -2116,30 +2116,30 @@
        */
       _myTrait_.TryStatement = function (node, ctx) {
 
-        this.out("try ");
-
         // node._exceptionHandler = node;
         // node._exceptionHandlerCtx = ctx;
         try {
           this.walk(node.block, ctx);
         } catch (msg) {
           // throw { type : "throw", node : node, value };
+          var eValue;
           if (msg.type == "throw") {
+            eValue = msg.value;
+          } else {
+            eValue = msg;
+          }
 
-            if (node.finalizer) {
-              this.walk(node.finalizer, ctx);
-            }
+          if (node.finalizer) {
+            this.walk(node.finalizer, ctx);
+          }
 
-            if (node.handler) {
-              var newCtx = this.createContext(ctx);
-              // set the exception handler param
-              if (node.handler && node.handler.param.name) {
-                newCtx.variables[node.handler.param.name] = msg.value;
-              }
-              this.walk(node.handler.body, newCtx);
-            } else {
-              throw msg;
+          if (node.handler) {
+            var newCtx = this.createContext(ctx);
+            // set the exception handler param
+            if (node.handler && node.handler.param.name) {
+              newCtx.variables[node.handler.param.name] = eValue;
             }
+            this.walk(node.handler.body, newCtx);
           } else {
             throw msg;
           }
