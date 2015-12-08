@@ -2424,7 +2424,7 @@
       _myTrait_.walk = function (node, ctx, newLine) {
 
         if (!node) return;
-        if (this.isKilled()) return;
+        // if(this.isKilled()) return;
 
         if (!ctx) {
           console.log("ERROR: no context defined for ", node);
