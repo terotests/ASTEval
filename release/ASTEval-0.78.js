@@ -1173,6 +1173,10 @@
           return fnCtx.return_value;
         };
         node.eval_res.__$$pLength__ = node.params.length;
+        node.params.forEach(function (p) {
+          if (p.type == "RestElement") node.eval_res.__$$pLength__--;
+        });
+
         // the fn can then be called
         if (node.id && node.id.name) {
           ctx.variables[node.id.name] = node.eval_res;
@@ -2020,17 +2024,23 @@
        * @param float ctx
        */
       _myTrait_.TemplateLiteral = function (node, ctx) {
-        this.out("`");
+
+        // ----
+        this.walk(node.expressions);
+
+        var strOut = "";
         for (var i = 0; i < node.quasis.length; i++) {
           if (i > 0) {
-            this.out("${");
-            if (node.expressions[i - 1]) this.walk(node.expressions[i - 1], ctx);
-            this.out("}");
+            var epr = node.expressions[i - 1];
+            strOut += _toValue(epr.eval_res);
           }
+
           var q = node.quasis[i];
-          this.walk(q, ctx);
+          strOut += q.value.cooked;
+          // this.walk(q, ctx);
         }
-        this.out("`");
+
+        node.eval_res = strOut;
       };
 
       /**
