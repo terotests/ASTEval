@@ -777,6 +777,7 @@
         var name;
 
         if (varName == null || varName == "null") return null;
+        if (!ctx) return _undefined;
 
         if (typeof varName == "object") {
           if (typeof varName.eval_res != "undefined") return varName.eval_res;
