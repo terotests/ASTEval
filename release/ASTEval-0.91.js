@@ -361,6 +361,7 @@
         if (node.operator == ">>") return node.eval_res = a >> b;
         if (node.operator == ">>>") return node.eval_res = a >>> b;
 
+        if (node.operator == "^") return node.eval_res = a ^ b;
         if (node.operator == "==") return node.eval_res = a == b;
         if (node.operator == "!=") return node.eval_res = a != b;
         if (node.operator == "===") return node.eval_res = a === b;
