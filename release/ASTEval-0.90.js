@@ -408,11 +408,7 @@
        * @param Object ctx
        */
       _myTrait_.BreakStatement = function (node, ctx) {
-        this.nlIfNot();
-        this.out("break ");
         if (node.label) this.walk(node.label, ctx);
-        this.out("", true);
-
         throw {
           type: "break",
           label: node.label
@@ -671,12 +667,7 @@
         }
 
         if (isBlock) {
-          Object.defineProperty(newCtx, "variables", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: pCtx.variables
-          });
+          newCtx.variables = pCtx.variables;
         } else {
           newCtx.variables = {};
         }
