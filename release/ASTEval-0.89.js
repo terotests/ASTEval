@@ -2365,22 +2365,14 @@
 
         var me = this;
         var cnt = 0;
-        if (node.kind == "var") me.out("var ");
-        if (node.kind == "let") me.out("let ");
-        if (node.kind == "const") me.out("const ");
-        var indent = 0;
+
         ctx._varKind = node.kind;
-        node.declarations.forEach(function (vd) {
-          if (cnt++ > 0) {
-            if (cnt == 2) {
-              indent += 2;
-              me.indent(indent);
-            }
-            me.out(",", true); // always a new declaration
-          }
-          me.walk(vd, ctx);
+        me.walk(node.declarations, ctx);
+        /*
+        node.declarations.forEach( function(vd) {
+        me.walk(vd,ctx);
         });
-        this.indent(-1 * indent);
+        */
       };
 
       /**
