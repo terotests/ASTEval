@@ -792,6 +792,10 @@
         }
         if (typeof varName == "number") return varName;
 
+        if (ctx.letVars && _isDeclared(ctx.letVars[name])) return ctx.letVars[name];
+        if (ctx.constVars && _isDeclared(ctx.constVars[name])) return ctx.constVars[name];
+        if (ctx.variables && _isDeclared(ctx.variables[name])) return ctx.variables[name];
+
         // TODO: ERROR if letvar is undefined does not work!!!!
         var letVar = this.findLetVar(name, ctx);
         if (_isDeclared(letVar)) {
