@@ -2421,7 +2421,6 @@
 
         if (!node) return;
         if (this.isKilled()) return;
-        if (this._break) return;
 
         if (!ctx) {
           console.log("ERROR: no context defined for ", node);
