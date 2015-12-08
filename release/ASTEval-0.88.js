@@ -234,83 +234,44 @@
 
         var me = this;
 
-        function node_assign(node, ctx, value) {
-          if (!me.canAccess(value)) {
-            console.error("Access denied for object ", value);
-            assignNode.eval_res = _undefined;
-            return;
-          }
-          if (node.type == "MemberExpression") {
-
-            var obj, prop;
-            if (typeof node.object.eval_res != "undefined") {
-              obj = node.object.eval_res;
-            } else {
-              obj = me.evalVariable(node.object, ctx);
-            }
-            if (!me.canAccess(obj)) {
-              console.error("Access denied for object ", obj);
-              assignNode.eval_res = _undefined;
-              return;
-            }
-            if (node.computed) {
-              if (typeof node.property.eval_res != "undefined") {
-                // --> Assigment
-                prop = node.property.eval_res; // me.evalVariable( node.property.eval_res, ctx ) ;
-              } else {
-                prop = me.evalVariable(node.property.name, ctx);
-              }
-            } else {
-              prop = node.property.name;
-            }
-            if (obj && typeof prop != "undefined") {
-              obj[prop] = _wrapValue(value);
-              assignNode.eval_res = _wrapValue(value);
-            }
-            return;
-          }
-          assignNode.eval_res = _wrapValue(value);
-          me.assignTo(node.name, ctx, value);
-        }
-
         if (node.operator == "=") {
-          node_assign(node.left, ctx, value);
+          return this.node_assign(node.left, ctx, value);
         }
         if (node.operator == "+=") {
-          node_assign(node.left, ctx, left_value + value);
+          return this.node_assign(node.left, ctx, left_value + value);
         }
         if (node.operator == "-=") {
-          node_assign(node.left, ctx, left_value - value);
+          return this.node_assign(node.left, ctx, left_value - value);
         }
         if (node.operator == "*=") {
-          node_assign(node.left, ctx, left_value * value);
+          return this.node_assign(node.left, ctx, left_value * value);
         }
         if (node.operator == "/=") {
-          node_assign(node.left, ctx, left_value / value);
+          return this.node_assign(node.left, ctx, left_value / value);
         }
         if (node.operator == "%=") {
-          node_assign(node.left, ctx, left_value % value);
+          return this.node_assign(node.left, ctx, left_value % value);
         }
         if (node.operator == "**=") {
-          node_assign(node.left, ctx, Math.pow(left_value, value));
+          return this.node_assign(node.left, ctx, Math.pow(left_value, value));
         }
         if (node.operator == "<<=") {
-          node_assign(node.left, ctx, left_value << value);
+          return this.node_assign(node.left, ctx, left_value << value);
         }
         if (node.operator == ">>=") {
-          node_assign(node.left, ctx, left_value >> value);
+          return this.node_assign(node.left, ctx, left_value >> value);
         }
         if (node.operator == ">>>=") {
-          node_assign(node.left, ctx, left_value >>> value);
+          return this.node_assign(node.left, ctx, left_value >>> value);
         }
         if (node.operator == "&=") {
-          node_assign(node.left, ctx, left_value & value);
+          return this.node_assign(node.left, ctx, left_value & value);
         }
         if (node.operator == "^=") {
-          node_assign(node.left, ctx, left_value ^ value);
+          return this.node_assign(node.left, ctx, left_value ^ value);
         }
         if (node.operator == "|=") {
-          node_assign(node.left, ctx, left_value | value);
+          return this.node_assign(node.left, ctx, left_value | value);
         }
 
         /*
@@ -1744,6 +1705,50 @@
             this.out(";", true);
           }
         }
+      };
+
+      /**
+       * @param float node
+       * @param float ctx
+       * @param float value
+       */
+      _myTrait_.node_assign = function (node, ctx, value) {
+        if (!this.canAccess(value)) {
+          assignNode.eval_res = _undefined;
+          return;
+        }
+        var me = this;
+        if (node.type == "MemberExpression") {
+
+          var obj, prop;
+          if (typeof node.object.eval_res != "undefined") {
+            obj = node.object.eval_res;
+          } else {
+            obj = me.evalVariable(node.object, ctx);
+          }
+          if (!me.canAccess(obj)) {
+            console.error("Access denied for object ", obj);
+            assignNode.eval_res = _undefined;
+            return;
+          }
+          if (node.computed) {
+            if (typeof node.property.eval_res != "undefined") {
+              // --> Assigment
+              prop = node.property.eval_res; // me.evalVariable( node.property.eval_res, ctx ) ;
+            } else {
+              prop = me.evalVariable(node.property.name, ctx);
+            }
+          } else {
+            prop = node.property.name;
+          }
+          if (obj && typeof prop != "undefined") {
+            obj[prop] = _wrapValue(value);
+            assignNode.eval_res = _wrapValue(value);
+          }
+          return;
+        }
+        assignNode.eval_res = _wrapValue(value);
+        me.assignTo(node.name, ctx, value);
       };
 
       /**
