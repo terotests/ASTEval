@@ -2,7 +2,14 @@
 
 ```javascript
 
-   // Undocumented so far...
+var rawAST = esprima.parse(codeStr, {});
+var evl = new ASTEval({
+            globals : {
+                JSON : window.JSON,
+                console : window.console
+            },
+            accessDenied : [window]
+        });
 
 ``` 
 
@@ -86,6 +93,8 @@
 - [MethodDefinition](README.md#ASTEval_MethodDefinition)
 - [NewExpression](README.md#ASTEval_NewExpression)
 - [nlIfNot](README.md#ASTEval_nlIfNot)
+- [node_assign](README.md#ASTEval_node_assign)
+- [node_assign_update](README.md#ASTEval_node_assign_update)
 - [ObjectExpression](README.md#ASTEval_ObjectExpression)
 - [ObjectPattern](README.md#ASTEval_ObjectPattern)
 - [out](README.md#ASTEval_out)
@@ -323,84 +332,48 @@ value = _toValue( value );
 left_value = _toValue( left_value );
 
 var me = this;
-function node_assign(node, ctx, value) {
-    if(!me.canAccess(value)) {
-        console.error("Access denied for object ", value);
-        assignNode.eval_res = _undefined;
-        return;
-    }      
-    if(node.type=="MemberExpression") {
-        
-        var obj, prop;
-        if(typeof( node.object.eval_res  ) !=  "undefined") {
-            obj = node.object.eval_res;
-        } else {
-            obj = me.evalVariable(node.object, ctx);
-        }
-        if(!me.canAccess(obj)) {
-            console.error("Access denied for object ", obj);
-            assignNode.eval_res = _undefined;
-            return;
-        }          
-        if(node.computed) {
-            if(typeof( node.property.eval_res  ) !=  "undefined") {
-                // --> Assigment 
-                prop = node.property.eval_res; // me.evalVariable( node.property.eval_res, ctx ) ;
-            } else {
-                prop = me.evalVariable( node.property.name, ctx ) ;
-            }            
-        } else {
-            prop = node.property.name;
-        }
-        if(obj && (typeof(prop)!="undefined")) {
-            obj[prop] = _wrapValue( value );
-            assignNode.eval_res = _wrapValue( value );
-        }
-        return;
-    }
-    assignNode.eval_res = _wrapValue( value );
-    me.assignTo(node.name, ctx, value);    
-}
 
 if(node.operator=="=") {
-    node_assign(node.left, ctx, value)
+    return this.node_assign(node.left, ctx, value, assignNode)
 }
 if(node.operator=="+=") {
-    node_assign(node.left, ctx, left_value+value)
+    return this.node_assign(node.left, ctx, left_value+value, assignNode)
 }
 if(node.operator=="-=") {
-    node_assign(node.left, ctx, left_value-value)
+    return this.node_assign(node.left, ctx, left_value-value, assignNode)
 }
 if(node.operator=="*=") {
-    node_assign(node.left, ctx, left_value*value)
+    return this.node_assign(node.left, ctx, left_value*value, assignNode)
 }
 if(node.operator=="/=") {
-    node_assign(node.left, ctx, left_value/value)
+    return this.node_assign(node.left, ctx, left_value/value, assignNode)
 }
 if(node.operator=="%=") {
-    node_assign(node.left, ctx, left_value%value)
+    return this.node_assign(node.left, ctx, left_value%value, assignNode)
 }
 if(node.operator=="**=") {
-    node_assign(node.left, ctx, Math.pow( left_value, value) );
+    return this.node_assign(node.left, ctx, Math.pow( left_value, value) , assignNode);
 }
 if(node.operator=="<<=") {
-    node_assign(node.left, ctx, left_value << value );
+    return this.node_assign(node.left, ctx, left_value << value , assignNode);
 }
 if(node.operator==">>=") {
-    node_assign(node.left, ctx, left_value >> value );
+    return this.node_assign(node.left, ctx, left_value >> value , assignNode);
 }
 if(node.operator==">>>=") {
-    node_assign(node.left, ctx, left_value >>> value );
+    return this.node_assign(node.left, ctx, left_value >>> value , assignNode);
 }
 if(node.operator=="&=") {
-    node_assign(node.left, ctx, left_value & value );
+    return this.node_assign(node.left, ctx, left_value & value , assignNode);
 }
 if(node.operator=="^=") {
-    node_assign(node.left, ctx, left_value ^ value );
+    return this.node_assign(node.left, ctx, left_value ^ value , assignNode);
 }
 if(node.operator=="|=") {
-    node_assign(node.left, ctx, left_value | value );
+    return this.node_assign(node.left, ctx, left_value | value , assignNode);
 }
+
+console.error("Unknown assigment ",node.operator);
 
 /*
 Assignment	x = y	x = y
@@ -470,53 +443,32 @@ if(!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
 a = _toValue(a);
 b = _toValue(b);
 
-if(true) {
-
        // ?? should result be object with value ?
 
-       if(node.operator=="+") node.eval_res = a + b;
-       if(node.operator=="-") node.eval_res = a - b;
-       if(node.operator=="*") node.eval_res = a * b;
-       if(node.operator=="/") node.eval_res = a / b;
-       if(node.operator=="<") node.eval_res = a < b;
-       if(node.operator=="<=") node.eval_res = a <= b;
-       if(node.operator==">") node.eval_res = a > b;
-       if(node.operator==">=") node.eval_res = a >= b;
-       if(node.operator=="&") node.eval_res = a & b;
-       if(node.operator=="|") node.eval_res = a | b;
-       if(node.operator=="<<") node.eval_res = a << b;
-       if(node.operator==">>") node.eval_res = a >> b;
-       if(node.operator==">>>") node.eval_res = a >>> b;
-       
-       if(node.operator=="==") node.eval_res = a == b;
-       if(node.operator=="!=") node.eval_res = a != b;
-       if(node.operator=="===") node.eval_res = a === b;
-       if(node.operator=="!==") node.eval_res = a !== b;
-       if(node.operator=="%") node.eval_res = a % b;
-       if(node.operator=="instanceof" ) node.eval_res = a instanceof b;
-       
-   } else {
-       console.error("Undefined variable in BinaryExpression");
-   }
-/*
-Equal (==)	Returns true if the operands are equal.	3 == var1
-"3" == var1
+if(node.operator=="+") return node.eval_res = a + b;
+if(node.operator=="-") return node.eval_res = a - b;
+if(node.operator=="*") return node.eval_res = a * b;
+if(node.operator=="/") return node.eval_res = a / b;
+if(node.operator=="<") return node.eval_res = a < b;
+if(node.operator=="<=") return node.eval_res = a <= b;
+if(node.operator==">") return node.eval_res = a > b;
+if(node.operator==">=") return node.eval_res = a >= b;
+if(node.operator=="&") return node.eval_res = a & b;
+if(node.operator=="|") return node.eval_res = a | b;
+if(node.operator=="<<") return node.eval_res = a << b;
+if(node.operator==">>") return node.eval_res = a >> b;
+if(node.operator==">>>") return node.eval_res = a >>> b;
 
-3 == '3'
-Not equal (!=)	Returns true if the operands are not equal.	var1 != 4
-var2 != "3"
-Strict equal (===)	Returns true if the operands are equal and of the same type. See also Object.is and sameness in JS.	3 === var1
-Strict not equal (!==)	Returns true if the operands are of the same type but not equal, or are of different type.	var1 !== "3"
-3 !== '3'
-Greater than (>)	Returns true if the left operand is greater than the right operand.	var2 > var1
-"12" > 2
-Greater than or equal (>=)	Returns true if the left operand is greater than or equal to the right operand.	var2 >= var1
-var1 >= 3
-Less than (<)	Returns true if the left operand is less than the right operand.	var1 < var2
-"2" < 12
-Less than or equal (<=)	Returns true if the left operand is less than or equal to the right operand.	var1 <= var2
-var2 <= 5
-*/
+if(node.operator=="==") return node.eval_res = a == b;
+if(node.operator=="!=") return node.eval_res = a != b;
+if(node.operator=="===") return node.eval_res = a === b;
+if(node.operator=="!==") return node.eval_res = a !== b;
+if(node.operator=="%") return node.eval_res = a % b;
+if(node.operator=="instanceof" ) return node.eval_res = a instanceof b;
+if(node.operator=="in" ) return node.eval_res = a in b;
+
+console.error("Undefined variable "+node.operator+" in BinaryExpression");
+
 ```
 
 ### <a name="ASTEval_BlockStatement"></a>ASTEval::BlockStatement(node, ctx)
@@ -528,10 +480,6 @@ var2 <= 5
 
 var blockCtx = { 
     block : true,
-    functions : {}, 
-    vars : {}, 
-    letVars : {}, 
-    constVars : {}, 
     parentCtx : ctx
 };    
 
@@ -539,30 +487,25 @@ var pCtx = ctx;
 while(pCtx && pCtx.block) {
     pCtx = pCtx.parentCtx;
 }
-
+blockCtx.variables = pCtx.variables;
+/*
 Object.defineProperty(blockCtx, 'variables', {
   enumerable: true,
   configurable: true,
   writable: true,
   value: pCtx.variables
 });
+*/
 
-this.out(" {",true);
-this.indent(1);
 this.walk(node.body, blockCtx, true);
-this.indent(-1);
-this.out("}");
+
 ```
 
 ### <a name="ASTEval_BreakStatement"></a>ASTEval::BreakStatement(node, ctx)
 
 
 ```javascript
-this.nlIfNot();
-this.out("break ");
 if(node.label) this.walk(node.label, ctx);
-this.out("", true);
-
 throw { type : "break", label : node.label };
 ```
 
@@ -721,7 +664,6 @@ if(node.body) {
 ```javascript
 if(!node) return;
 if(!node.type) return;
-
 if(node._fnc) return;
 
 if(node.type=="FunctionExpression") {
@@ -812,10 +754,9 @@ throw { type : "continue", label : node.label };
 
 
 ```javascript
-var newCtx = { functions : {}, 
-              vars : {}, 
-              parentCtx : ctx,
-              block : isBlock
+var newCtx = {     
+                  parentCtx : ctx,
+                  block : isBlock
               };   
 
 var pCtx = ctx;
@@ -824,12 +765,7 @@ while(pCtx && pCtx.block) {
 }
 
 if(isBlock) {
-    Object.defineProperty(newCtx, 'variables', {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: pCtx.variables
-    });
+    newCtx.variables = pCtx.variables;
 } else {
     newCtx.variables = {};   
 }
@@ -927,24 +863,38 @@ this._collecting = false;
 
 ```javascript
 var name;
-
 if(varName==null || varName=="null") return null;
+if(!ctx) return _undefined;
+
+if(typeof(varName)=="number") return name;
 
 if(typeof(varName)=="object") {
     if(typeof(varName.eval_res)!="undefined") return varName.eval_res;
     var node = varName;
     if(node.type == "Identifier") {
-        name = node.name;
+        name = varName.name;
+    } else {
+        if( node.type == "Literal") {
+            return node.value; 
+        } else {
+            return _undefined;
+        }    
     }
-    if( node.type == "Literal") {
-        return node.value; // ???
-    }    
 } else {
     name = varName;
 }
-if(typeof(varName)=="number") return varName;
 
-// TODO: ERROR if letvar is undefined does not work!!!!
+if(ctx.letVars && _isDeclared( ctx.letVars[name] ))  return ctx.letVars[name];
+if(ctx.constVars && _isDeclared( ctx.constVars[name] ) ) return ctx.constVars[name];
+if(ctx.variables && _isDeclared( ctx.variables[name] ))  return ctx.variables[name];
+
+if(ctx.parentCtx) {
+    var pc = ctx.parentCtx;
+    if(pc.letVars && _isDeclared( pc.letVars[name] ))  return pc.letVars[name];
+    if(pc.constVars && _isDeclared( pc.constVars[name] ) ) return pc.constVars[name];
+    if(pc.variables && _isDeclared( pc.variables[name] ))  return pc.variables[name];    
+}
+
 var letVar = this.findLetVar(name, ctx);
 if(_isDeclared(letVar)) {
     if(_isUndef(letVar)) return undefined;
@@ -1068,7 +1018,7 @@ if(node.left.type=="VariableDeclaration") {
     propName = decl.name || decl.id.name;
 } else {
     if(node.left.type=="Identifier") {
-        propName = node.name;
+        propName = node.left.name;
     } else {
         propName = node.left.eval_res;
     }
@@ -1843,6 +1793,76 @@ if(len > 0) {
 }
 ```
 
+### <a name="ASTEval_node_assign"></a>ASTEval::node_assign(node, ctx, value, assignNode)
+
+
+```javascript
+if(!this.canAccess(value)) {
+    assignNode.eval_res = _undefined;
+    return;
+}      
+var me = this;
+if(node.type=="MemberExpression") {
+    
+    var obj, prop;
+    if(typeof( node.object.eval_res  ) !=  "undefined") {
+        obj = node.object.eval_res;
+    } else {
+        obj = me.evalVariable(node.object, ctx);
+    }
+    if(!me.canAccess(obj)) {
+        console.error("Access denied for object ", obj);
+        assignNode.eval_res = _undefined;
+        return;
+    }          
+    if(node.computed) {
+        if(typeof( node.property.eval_res  ) !=  "undefined") {
+            // --> Assigment 
+            prop = node.property.eval_res; // me.evalVariable( node.property.eval_res, ctx ) ;
+        } else {
+            prop = me.evalVariable( node.property.name, ctx ) ;
+        }            
+    } else {
+        prop = node.property.name;
+    }
+    if(obj && (typeof(prop)!="undefined")) {
+        obj[prop] = _wrapValue( value );
+        assignNode.eval_res = _wrapValue( value );
+    }
+    return;
+}
+assignNode.eval_res = _wrapValue( value );
+me.assignTo(node.name, ctx, value); 
+```
+
+### <a name="ASTEval_node_assign_update"></a>ASTEval::node_assign_update(node, ctx, value)
+
+
+```javascript
+if(node.type=="MemberExpression") {
+    var obj, prop;
+    if(typeof( node.object.eval_res  ) !=  "undefined") {
+        obj = node.object.eval_res;
+    } else {
+        obj = this.evalVariable(node.object, ctx);
+    }
+    if(node.computed) {
+        if(typeof( node.property.eval_res  ) !=  "undefined") {
+            prop = node.property.eval_res; // this.evalVariable( node.property.eval_res, ctx ) ;
+        } else {
+            prop = this.evalVariable( node.property.name, ctx ) ;
+        }            
+    } else {
+        prop = node.property.name;
+    }
+    if(obj && prop) {
+        obj[prop] = value;
+    }
+    return;
+}    
+this.assignTo(node, ctx, value);
+```
+
 ### <a name="ASTEval_ObjectExpression"></a>ASTEval::ObjectExpression(node, ctx)
 
 
@@ -2092,6 +2112,10 @@ this._path = [];
 
 this._codeStr = "";
 this._currentLine = "";
+
+if(!ctx.letVars) ctx.letVars = {};
+if(!ctx.constVars) ctx.constVars = {};
+if(!ctx.variables) ctx.variables = {};
 
 var me = this;
 this.collectVarsAndFns(node,ctx, function(node) {
@@ -2360,15 +2384,19 @@ var value = _toValue( node.argument.eval_res || this.evalVariable( node.argument
 if(true) {
     if(node.operator == "-") {
         node.eval_res = -1 * value;
+        return;
     }
     if(node.operator == "~") {
         node.eval_res = ~value;
+        return;
     }
     if(node.operator == "!") {
         node.eval_res = !value;
+        return;
     }  
     if(node.operator == "+") {
         node.eval_res = +value;
+        return;
     }      
     if(node.operator == "delete") {
         var argNode = node.argument;
@@ -2403,15 +2431,19 @@ if(true) {
         } else {
             node.eval_res = delete _globalCtx[value];
         }
+        return;
     }   
     if(node.operator == "typeof") {
         // node.eval_res = +value;
         node.eval_res = typeof(value);
+        return;
     }
     if(node.operator == "void") {
         // node.eval_res = +value;
         node.eval_res = void(value);
+        return;
     }     
+    console.error("Unknown UnaryExpression ",node.operator);
 }
 
 ```
@@ -2421,50 +2453,23 @@ if(true) {
 
 ```javascript
 
-this.trigger("UpdateExpressionArgument", node.argument);
 this.walk(node.argument, ctx);
-this.out(node.operator);
 
 var value = node.argument.eval_value;
 if(typeof(value) == "undefined") value = this.evalVariable( node.argument, ctx);
-
-var me = this;
-var node_assign = function(node, ctx, value) {
-    if(node.type=="MemberExpression") {
-        var obj, prop;
-        if(typeof( node.object.eval_res  ) !=  "undefined") {
-            obj = node.object.eval_res;
-        } else {
-            obj = this.evalVariable(node.object, ctx);
-        }
-        if(node.computed) {
-            if(typeof( node.property.eval_res  ) !=  "undefined") {
-                prop = node.property.eval_res; // this.evalVariable( node.property.eval_res, ctx ) ;
-            } else {
-                prop = this.evalVariable( node.property.name, ctx ) ;
-            }            
-        } else {
-            prop = node.property.name;
-        }
-        if(obj && prop) {
-            obj[prop] = value;
-        }
-        return;
-    }    
-    me.assignTo(node, ctx, value);
-}
 
 if(node.operator=="++" && typeof(value)!="undefined") {
     if(!node.prefix) node.eval_res = value;
     value++;
     if(node.prefix) node.eval_res = value;
-    node_assign( node.argument, ctx, value);
+    this.node_assign_update( node.argument, ctx, value);
+    return;
 }
 if(node.operator=="--" && typeof(value)!="undefined") {
     if(!node.prefix) node.eval_res = value;
     value--;
     if(node.prefix) node.eval_res = value;
-    node_assign( node.argument, ctx, value);
+    this.node_assign_update( node.argument, ctx, value);
 
 }
 
@@ -2481,22 +2486,15 @@ if(node.operator=="--" && typeof(value)!="undefined") {
 
 var me = this;
 var cnt=0;
-if(node.kind=="var")  me.out("var ");
-if(node.kind=="let") me.out("let ");   
-if(node.kind=="const") me.out("const ");   
-var indent=0;
+
 ctx._varKind = node.kind;
+me.walk(node.declarations, ctx);
+/*
 node.declarations.forEach( function(vd) {
-    if(cnt++>0) {
-        if(cnt==2) {
-            indent+=2;
-            me.indent(indent);
-        }
-        me.out(",", true); // always a new declaration
-    }
     me.walk(vd,ctx);
 });
-this.indent(-1*indent);
+*/
+
 
 
 ```
@@ -2556,7 +2554,6 @@ if(node.init) {
 
 if(!node) return;
 if(this.isKilled()) return;
-if(this._break) return;
 
 if(!ctx) {
     console.log("ERROR: no context defined for ", node);
@@ -2570,111 +2567,20 @@ if(node instanceof Array) {
     var firstItem = node[0];
     if(!firstItem) return;
     this.walk( firstItem, ctx );
-    /*
-    var me = this;
-    var index = 0;
-    var parent = this._path[this._path.length-1];
-    if(!parent && this._breakState) {
-        if(this._breakState.path) {
-            parent = this._breakState.path[this._breakState.path.length-1];
-        }    
-    }    
-    if(parent && typeof( parent._activeIndex ) != "undefined")  {
-        index = parent._activeIndex+1; // if continue, continue from next statement
-    }
 
-    // parent of this node...
-    for( var i=index; i<node.length;i++) {
-        if(parent) parent._activeIndex = i;
-        me.walk( node[i], ctx );
-        if(this._break) {
-            return;
-        }        
-    }
-    delete parent._activeIndex;
-    */
-    
 } else {
     if(node.type) {
-        
-        // mark the current position
-        this._processingNode = node;
-        
-        var runTime = {
-            node : node,
-            ctx : ctx
-        };
-        this.trigger("node", runTime);
-        this.trigger(node.type, runTime);
-        
-        if(this._skipWalk) {
-            this._skipWalk = false;
-            return;
-        }
-        // if break command has been issued for the process
-        if(this._break) {
-            // Save the state of the machine and exit
-            if(this._breakState) {
-                var stack_array = this._breakState.path;
-                this._path.forEach( function(node) {
-                    stack_array.push(node);
-                })
-                this._breakState.node = node;
-                this._breakState.ctx = ctx;
-                this._breakState.process = this;
-            } else {
-                this._breakState = {
-                    node : node,
-                    ctx : ctx,
-                    process : this,
-                    path : this._path
-                }
-            }
-            return;
-        }       
-        
-        if(this._wCb) this._wCb(node);
-        
         if(this[node.type]) {
-            this._path.push(node);
-            
-            // NEW: the context of the node is also saved
-            node._activeCtx = ctx;
-            
             this[node.type](node, ctx);
-            
-            if(this._break) return;
-            
-            this._path.pop();
-            
             //-- then either next or parent...
             var next = node._next;
             if(next) {
                 this.walk( next, ctx );
-            } else {
-                // if not... the context goes to parent
-                if(this._path.length==0) {
-
-                }
-            }
-            
-            // if this execution walk is over, but we have a break state available from
-            // some previous execution context, continue from that...
-            /*
-            if(this._path.length==0) {
-                if(this._breakState && this._breakState.path && this._breakState.path.length) {
-                    var returnTo = this._breakState.path.pop();
-                    if(returnTo) {
-                        this.walk( returnTo, returnTo._activeCtx );
-                    }
-                }
-            }
-            */
+            } 
         } else {
             console.log("Did not find "+node.type);
             console.log(node);
         }
-        
     }
 }
 ```
