@@ -274,6 +274,8 @@
           return this.node_assign(node.left, ctx, left_value | value, assignNode);
         }
 
+        console.error("Unknown assigment ", node.operator);
+
         /*
         Assignment	x = y	x = y
         Addition assignment	x += y	x = x + y
@@ -2274,15 +2276,19 @@
         if (true) {
           if (node.operator == "-") {
             node.eval_res = -1 * value;
+            return;
           }
           if (node.operator == "~") {
             node.eval_res = ~value;
+            return;
           }
           if (node.operator == "!") {
             node.eval_res = !value;
+            return;
           }
           if (node.operator == "+") {
             node.eval_res = +value;
+            return;
           }
           if (node.operator == "delete") {
             var argNode = node.argument;
@@ -2317,15 +2323,19 @@
             } else {
               node.eval_res = delete _globalCtx[value];
             }
+            return;
           }
           if (node.operator == "typeof") {
             // node.eval_res = +value;
             node.eval_res = typeof value;
+            return;
           }
           if (node.operator == "void") {
             // node.eval_res = +value;
             node.eval_res = void value;
+            return;
           }
+          console.error("Unknown UnaryExpression ", node.operator);
         }
       };
 
