@@ -379,10 +379,6 @@
 
         var blockCtx = {
           block: true,
-          functions: {},
-          vars: {},
-          letVars: {},
-          constVars: {},
           parentCtx: ctx
         };
 
@@ -655,13 +651,8 @@
        */
       _myTrait_.createContext = function (ctx, isBlock) {
         var newCtx = {
-          functions: {},
-          vars: {},
           parentCtx: ctx,
-          block: isBlock,
-          letVars: {},
-          constVars: {},
-          variables: {}
+          block: isBlock
         };
 
         var pCtx = ctx;
@@ -787,27 +778,17 @@
         } else {
           name = varName;
         }
-        if (typeof ctx.letVars[name] != "undefined") return ctx.letVars[name];
-        if (typeof ctx.constVars[name] != "undefined") return ctx.constVars[name];
-        if (typeof ctx.variables[name] != "undefined") return ctx.variables[name];
+
+        if (ctx.letVars && _isDeclared(ctx.letVars[name])) return ctx.letVars[name];
+        if (ctx.constVars && _isDeclared(ctx.constVars[name])) return ctx.constVars[name];
+        if (ctx.variables && _isDeclared(ctx.variables[name])) return ctx.variables[name];
 
         if (ctx.parentCtx) {
           var pc = ctx.parentCtx;
-          if (typeof pc.letVars[name] != "undefined") return pc.letVars[name];
-          if (typeof pc.constVars[name] != "undefined") return pc.constVars[name];
-          if (typeof pc.variables[name] != "undefined") return pc.variables[name];
+          if (pc.letVars && _isDeclared(pc.letVars[name])) return pc.letVars[name];
+          if (pc.constVars && _isDeclared(pc.constVars[name])) return pc.constVars[name];
+          if (pc.variables && _isDeclared(pc.variables[name])) return pc.variables[name];
         }
-        /*
-        if(ctx.letVars && _isDeclared( ctx.letVars[name] ))  return ctx.letVars[name];
-        if(ctx.constVars && _isDeclared( ctx.constVars[name] ) ) return ctx.constVars[name];
-        if(ctx.variables && _isDeclared( ctx.variables[name] ))  return ctx.variables[name];
-        if(ctx.parentCtx) {
-        var pc = ctx.parentCtx;
-        if(pc.letVars && _isDeclared( pc.letVars[name] ))  return pc.letVars[name];
-        if(pc.constVars && _isDeclared( pc.constVars[name] ) ) return pc.constVars[name];
-        if(pc.variables && _isDeclared( pc.variables[name] ))  return pc.variables[name];    
-        }
-        */
 
         var letVar = this.findLetVar(name, ctx);
         if (_isDeclared(letVar)) {
