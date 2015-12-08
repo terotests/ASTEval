@@ -2396,7 +2396,7 @@
         if (node.init) {
           this.out(" = ");
           me.walk(node.init, ctx);
-          if (node.id.name && typeof node.init.eval_res != "undefined") {
+          if (node.id.name) {
             if (!ctx.variables) ctx.variables = {};
             if (ctx._varKind == "var") {
               ctx.variables[node.id.name] = _wrapValue(node.init.eval_res);
