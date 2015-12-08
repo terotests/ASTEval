@@ -608,7 +608,7 @@
       _myTrait_.ConditionalExpression = function (node, ctx) {
 
         this.walk(node.test, ctx);
-        if (node.test.eval_res) {
+        if (_toValue(node.test.eval_res)) {
           this.walk(node.consequent, ctx);
           node.eval_res = node.consequent.eval_res;
         } else {
