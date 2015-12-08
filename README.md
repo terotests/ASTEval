@@ -162,6 +162,8 @@ The class has following internal singleton variables:
         
 * _toValue
         
+* _globalCtx
+        
         
 ### <a name="ASTEval__getUndefined"></a>ASTEval::_getUndefined(t)
 
@@ -929,7 +931,8 @@ if(_isDeclared( ctx.variables[name]))  {
         return this.evalVariable(name, ctx.parentCtx);
     } else {
         // unfortunate constant :/ 
-        return window[name];
+        if(_globalCtx) return _globalCtx[name];
+        // return window[name];
     }
 }
 ```
@@ -997,7 +1000,7 @@ if(ctx.letVars && _isDeclared( ctx.letVars[name] ))  {
 if(ctx["this"]) return ctx["this"];
 if(ctx.parentCtx) return this.findThis( ctx.parentCtx );
 
-return window;
+return _globalCtx;
 ```
 
 ### <a name="ASTEval_ForInStatement"></a>ASTEval::ForInStatement(node, ctx)
@@ -1439,7 +1442,11 @@ if(node.body) {
 
 ```javascript
 
-
+// accessing the ASTEval is forbidden
+if(node.name=="ASTEval") {
+    node.eval_res = _undefined;
+    return;
+}
 if(node.name=="undefined") {
     node.eval_res = _undefined;
     return;
@@ -1486,6 +1493,12 @@ this._currentLine = "";
 this._indent = 0;
 
 this._options = options || {};
+
+if(this._options.globals) {
+    _globalCtx = this._options.globals;
+}
+
+if(!_globalCtx) _globalCtx = {};
 
 if(!_isUndef) {
     _undefined = {};
@@ -2332,7 +2345,7 @@ if(true) {
             }
             return;
         } else {
-            node.eval_res = delete window[value];
+            node.eval_res = delete _globalCtx[value];
         }
     }   
     if(node.operator == "typeof") {
