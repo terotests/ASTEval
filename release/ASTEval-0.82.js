@@ -1152,6 +1152,9 @@
           };
           fnCtx["this"] = this;
           fnCtx.variables["arguments"] = arguments;
+          if (this instanceof node.eval_res) {
+            fnCtx.variables["new.target"] = node.eval_res;
+          }
           var evl = new ASTEval();
 
           for (var i = 0; i < arg_len; i++) {
@@ -1210,6 +1213,7 @@
         node.eval_res = function () {
           if (me.isKilled()) return;
           // NOTE: if(node.generator) this.out("*");
+
           //
           var args = [],
               arg_len = arguments.length,
@@ -1225,6 +1229,9 @@
           };
           fnCtx["this"] = this;
           fnCtx.variables["arguments"] = arguments;
+          if (this instanceof node.eval_res) {
+            fnCtx.variables["new.target"] = node.eval_res;
+          }
           var evl = new ASTEval();
 
           for (var i = 0; i < arg_len; i++) {
@@ -1586,6 +1593,17 @@
       };
 
       /**
+       * @param float node
+       * @param float ctx
+       */
+      _myTrait_.MetaProperty = function (node, ctx) {
+
+        var vname = node.meta + "." + node.property;
+
+        node.eval_res = this.evalVariable(vname, ctx);
+      };
+
+      /**
        * @param Object node
        * @param Object ctx
        */
@@ -1634,7 +1652,9 @@
                   a.push(_toValue(me.evalVariable(n, ctx)));
                 }
               });
+
               // --> there is no this pointer for the functions
+              // fnToCall.__newTarget__ = fnToCall;
 
               var newObj;
               if (a.length == 0) newObj = new fnToCall();
