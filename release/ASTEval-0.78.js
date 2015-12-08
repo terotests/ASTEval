@@ -2026,7 +2026,7 @@
       _myTrait_.TemplateLiteral = function (node, ctx) {
 
         // ----
-        this.walk(node.expressions);
+        this.walk(node.expressions, ctx);
 
         var strOut = "";
         for (var i = 0; i < node.quasis.length; i++) {
