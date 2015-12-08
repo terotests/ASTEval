@@ -2010,6 +2010,30 @@
       };
 
       /**
+       * @param Object node
+       * @param float ctx
+       */
+      _myTrait_.TemplateElement = function (node, ctx) {};
+
+      /**
+       * @param float node
+       * @param float ctx
+       */
+      _myTrait_.TemplateLiteral = function (node, ctx) {
+        this.out("`");
+        for (var i = 0; i < node.quasis.length; i++) {
+          if (i > 0) {
+            this.out("${");
+            if (node.expressions[i - 1]) this.walk(node.expressions[i - 1], ctx);
+            this.out("}");
+          }
+          var q = node.quasis[i];
+          this.walk(q, ctx);
+        }
+        this.out("`");
+      };
+
+      /**
        * @param float node
        * @param float ctx
        */
