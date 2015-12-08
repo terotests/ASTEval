@@ -235,43 +235,43 @@
         var me = this;
 
         if (node.operator == "=") {
-          return this.node_assign(node.left, ctx, value);
+          return this.node_assign(node.left, ctx, value, assignNode);
         }
         if (node.operator == "+=") {
-          return this.node_assign(node.left, ctx, left_value + value);
+          return this.node_assign(node.left, ctx, left_value + value, assignNode);
         }
         if (node.operator == "-=") {
-          return this.node_assign(node.left, ctx, left_value - value);
+          return this.node_assign(node.left, ctx, left_value - value, assignNode);
         }
         if (node.operator == "*=") {
-          return this.node_assign(node.left, ctx, left_value * value);
+          return this.node_assign(node.left, ctx, left_value * value, assignNode);
         }
         if (node.operator == "/=") {
-          return this.node_assign(node.left, ctx, left_value / value);
+          return this.node_assign(node.left, ctx, left_value / value, assignNode);
         }
         if (node.operator == "%=") {
-          return this.node_assign(node.left, ctx, left_value % value);
+          return this.node_assign(node.left, ctx, left_value % value, assignNode);
         }
         if (node.operator == "**=") {
-          return this.node_assign(node.left, ctx, Math.pow(left_value, value));
+          return this.node_assign(node.left, ctx, Math.pow(left_value, value), assignNode);
         }
         if (node.operator == "<<=") {
-          return this.node_assign(node.left, ctx, left_value << value);
+          return this.node_assign(node.left, ctx, left_value << value, assignNode);
         }
         if (node.operator == ">>=") {
-          return this.node_assign(node.left, ctx, left_value >> value);
+          return this.node_assign(node.left, ctx, left_value >> value, assignNode);
         }
         if (node.operator == ">>>=") {
-          return this.node_assign(node.left, ctx, left_value >>> value);
+          return this.node_assign(node.left, ctx, left_value >>> value, assignNode);
         }
         if (node.operator == "&=") {
-          return this.node_assign(node.left, ctx, left_value & value);
+          return this.node_assign(node.left, ctx, left_value & value, assignNode);
         }
         if (node.operator == "^=") {
-          return this.node_assign(node.left, ctx, left_value ^ value);
+          return this.node_assign(node.left, ctx, left_value ^ value, assignNode);
         }
         if (node.operator == "|=") {
-          return this.node_assign(node.left, ctx, left_value | value);
+          return this.node_assign(node.left, ctx, left_value | value, assignNode);
         }
 
         /*
