@@ -174,7 +174,7 @@
           node.params.forEach(function (p) {
             if (p.type == "RestElement") {
               // should be the rest of the string...
-              fnCtx.variables[p.argument.name] = origArgs.slice(i);
+              fnCtx.variables[p.argument.name] = args.slice(i);
               i++;
               return;
             }
@@ -1162,7 +1162,7 @@
           node.params.forEach(function (p) {
             if (p.type == "RestElement") {
               // should be the rest of the string...
-              fnCtx.variables[p.argument.name] = origArgs.slice(i);
+              fnCtx.variables[p.argument.name] = args.slice(i);
               i++;
               return;
             }
@@ -1235,7 +1235,7 @@
           node.params.forEach(function (p) {
             if (p.type == "RestElement") {
               // should be the rest of the string...
-              fnCtx.variables[p.argument.name] = origArgs.slice(i);
+              fnCtx.variables[p.argument.name] = args.slice(i);
               i++;
               return;
             }
