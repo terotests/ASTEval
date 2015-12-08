@@ -940,6 +940,11 @@
         if (ctx["this"]) return ctx["this"];
         if (ctx.parentCtx) return this.findThis(ctx.parentCtx);
 
+        if (!this.canAccess(_globalCtx)) {
+          console.error("Can not access ", _globalCtx);
+          return _undefined;
+        }
+
         return _globalCtx;
       };
 
