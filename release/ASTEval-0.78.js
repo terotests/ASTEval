@@ -1238,6 +1238,9 @@
 
         // TODO: disallow rest param...
         node.eval_res.__$$pLength__ = node.params.length;
+        node.params.forEach(function (p) {
+          if (p.type == "RestElement") node.eval_res.__$$pLength__--;
+        });
 
         // the fn can then be called
         if (node.id && node.id.name) {
