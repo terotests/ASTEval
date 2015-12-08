@@ -703,7 +703,7 @@
             max_cnt--;
             if (node.test) {
               this.walk(node.test, ctx);
-              if (!node.test.eval_res) {
+              if (!_toValue(node.test.eval_res)) {
                 break;
               }
             } else {
@@ -1056,7 +1056,7 @@
           try {
             if (node.test) {
               this.walk(node.test, myCtx);
-              if (!node.test.eval_res) {
+              if (!_toValue(node.test.eval_res)) {
                 break;
               }
             } else {
@@ -2094,7 +2094,7 @@
         if (node.test) {
           this.walk(node.test, ctx);
 
-          if (node.test.eval_res == ctx._switchTest.eval_res) {
+          if (_toValue(node.test.eval_res) == _toValue(ctx._switchTest.eval_res)) {
             ctx._switchMatch = true;
           }
           if (ctx._switchMatch) {
@@ -2499,7 +2499,7 @@
           try {
             if (node.test) {
               this.walk(node.test, ctx);
-              if (!node.test.eval_res) {
+              if (!_toValue(node.test.eval_res)) {
                 break;
               }
             } else {
