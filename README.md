@@ -42,6 +42,7 @@
 - [BreakStatement](README.md#ASTEval_BreakStatement)
 - [breakWalk](README.md#ASTEval_breakWalk)
 - [CallExpression](README.md#ASTEval_CallExpression)
+- [canAccess](README.md#ASTEval_canAccess)
 - [CatchClause](README.md#ASTEval_CatchClause)
 - [ClassBody](README.md#ASTEval_ClassBody)
 - [ClassDeclaration](README.md#ASTEval_ClassDeclaration)
@@ -163,6 +164,8 @@ The class has following internal singleton variables:
 * _toValue
         
 * _globalCtx
+        
+* _accessDenied
         
         
 ### <a name="ASTEval__getUndefined"></a>ASTEval::_getUndefined(t)
@@ -321,6 +324,11 @@ left_value = _toValue( left_value );
 
 var me = this;
 function node_assign(node, ctx, value) {
+    if(!this.canAccess(value)) {
+        console.error("Access denied for object ", value);
+        assignNode.eval_res = _undefined;
+        return;
+    }      
     if(node.type=="MemberExpression") {
         
         var obj, prop;
@@ -329,6 +337,11 @@ function node_assign(node, ctx, value) {
         } else {
             obj = me.evalVariable(node.object, ctx);
         }
+        if(!this.canAccess(obj)) {
+            console.error("Access denied for object ", obj);
+            assignNode.eval_res = _undefined;
+            return;
+        }          
         if(node.computed) {
             if(typeof( node.property.eval_res  ) !=  "undefined") {
                 // --> Assigment 
@@ -604,6 +617,11 @@ if(node.callee) {
         if(node.callee.type=="MemberExpression") {
             // this.walk(node.callee, ctx);
             this_pointer = node.callee.object.eval_res;
+            if(!this.canAccess(this_pointer)) {
+                console.error("Access denied for object ", this_pointer);
+                node.eval_res = _undefined;
+                return;
+            }            
         }
         if(node.callee.type=="ThisExpression") {
             if(ctx.parentCtx) this_pointer = ctx.parentCtx["this"];
@@ -618,6 +636,21 @@ if(node.callee) {
     
     
 }
+```
+
+### <a name="ASTEval_canAccess"></a>ASTEval::canAccess(obj)
+`obj` The object pointer
+ 
+
+Tests if Object can be directly accessed using property accessor
+```javascript
+
+if(_accessDenied) {
+    for(var i=0; i<_accessDenied.length;i++) {
+        if(_accessDenied[i] === obj) return false;
+    }
+}
+return true;
 ```
 
 ### <a name="ASTEval_CatchClause"></a>ASTEval::CatchClause(node, ctx)
@@ -999,6 +1032,11 @@ if(ctx.letVars && _isDeclared( ctx.letVars[name] ))  {
 
 if(ctx["this"]) return ctx["this"];
 if(ctx.parentCtx) return this.findThis( ctx.parentCtx );
+
+if(!this.canAccess(_globalCtx)) {
+    console.error("Can not access ", _globalCtx);
+    return _undefined;
+}
 
 return _globalCtx;
 ```
@@ -1497,6 +1535,9 @@ this._options = options || {};
 if(this._options.globals) {
     _globalCtx = this._options.globals;
 }
+if(this._options.accessDenied) {
+    _accessDenied = this._options.accessDenied;
+}
 
 if(!_globalCtx) _globalCtx = {};
 
@@ -1684,6 +1725,11 @@ if(node.computed) {
 
 if(!_isUndef(oo)) {
     try {
+        if(!this.canAccess(oo)) {
+            console.error("Access denied for object ", oo);
+            node.eval_res = _undefined;
+            return;
+        }
         if(prop=="length" && (typeof(oo)=="function") && typeof(oo.__$$pLength__)!="undefined") {
             node.eval_res = oo.__$$pLength__;
         } else {
@@ -2328,6 +2374,11 @@ if(true) {
             } else {
                 obj = this.evalVariable(argNode.object, ctx);
             }
+            if(!this.canAccess(obj)) {
+                console.error("Access denied for object ", obj);
+                node.eval_res = _undefined;
+                return;
+            }              
             if(argNode.computed) {
                 if(typeof( argNode.property.eval_res  ) !=  "undefined") {
                     // --> Assigment 
