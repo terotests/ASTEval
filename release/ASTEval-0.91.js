@@ -920,7 +920,7 @@
           propName = decl.name || decl.id.name;
         } else {
           if (node.left.type == "Identifier") {
-            propName = node.name;
+            propName = node.left.name;
           } else {
             propName = node.left.eval_res;
           }
