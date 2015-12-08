@@ -1348,7 +1348,7 @@
       _myTrait_.IfStatement = function (node, ctx) {
 
         this.walk(node.test, ctx);
-        if (node.test.eval_res) {
+        if (_toValue(node.test.eval_res)) {
           this.walk(node.consequent, ctx);
         } else {
           this.walk(node.alternate, ctx);
