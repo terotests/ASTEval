@@ -2310,7 +2310,8 @@
         if (typeof value == "undefined") value = this.evalVariable(node.argument, ctx);
 
         var me = this;
-        var node_assign = function node_assign(node, ctx, value) {
+
+        function node_assign(node, ctx, value) {
           if (node.type == "MemberExpression") {
             var obj, prop;
             if (typeof node.object.eval_res != "undefined") {
@@ -2333,7 +2334,7 @@
             return;
           }
           me.assignTo(node, ctx, value);
-        };
+        }
 
         if (node.operator == "++" && typeof value != "undefined") {
           if (!node.prefix) node.eval_res = value;
