@@ -1403,8 +1403,8 @@
 
         this._options = options || {};
 
-        if (options.globals) {
-          _globalCtx = options.globals;
+        if (this._options.globals) {
+          _globalCtx = this._options.globals;
         }
 
         if (!_globalCtx) _globalCtx = {};
