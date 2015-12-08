@@ -1795,12 +1795,7 @@
        * @param Object node
        * @param float ctx
        */
-      _myTrait_.RestElement = function (node, ctx) {
-        if (node.argument) this.trigger("RestArgument", node.argument);
-
-        this.out(" ...");
-        this.walk(node.argument, ctx);
-      };
+      _myTrait_.RestElement = function (node, ctx) {};
 
       /**
        * @param float node
@@ -2622,5 +2617,9 @@
 // ok
 
 // ok
+
+//if(node.argument) this.trigger("RestArgument", node.argument);
+//this.out(" ...");
+//this.walk(node.argument, ctx);
 
 // ok
