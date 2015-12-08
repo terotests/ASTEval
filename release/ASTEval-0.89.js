@@ -2444,102 +2444,15 @@
           var firstItem = node[0];
           if (!firstItem) return;
           this.walk(firstItem, ctx);
-          /*
-          var me = this;
-          var index = 0;
-          var parent = this._path[this._path.length-1];
-          if(!parent && this._breakState) {
-          if(this._breakState.path) {
-            parent = this._breakState.path[this._breakState.path.length-1];
-          }    
-          }    
-          if(parent && typeof( parent._activeIndex ) != "undefined")  {
-          index = parent._activeIndex+1; // if continue, continue from next statement
-          }
-          // parent of this node...
-          for( var i=index; i<node.length;i++) {
-          if(parent) parent._activeIndex = i;
-          me.walk( node[i], ctx );
-          if(this._break) {
-            return;
-          }        
-          }
-          delete parent._activeIndex;
-          */
         } else {
           if (node.type) {
-
-            // mark the current position
-            this._processingNode = node;
-
-            var runTime = {
-              node: node,
-              ctx: ctx
-            };
-            this.trigger("node", runTime);
-            this.trigger(node.type, runTime);
-
-            if (this._skipWalk) {
-              this._skipWalk = false;
-              return;
-            }
-            // if break command has been issued for the process
-            if (this._break) {
-              // Save the state of the machine and exit
-              if (this._breakState) {
-                var stack_array = this._breakState.path;
-                this._path.forEach(function (node) {
-                  stack_array.push(node);
-                });
-                this._breakState.node = node;
-                this._breakState.ctx = ctx;
-                this._breakState.process = this;
-              } else {
-                this._breakState = {
-                  node: node,
-                  ctx: ctx,
-                  process: this,
-                  path: this._path
-                };
-              }
-              return;
-            }
-
-            if (this._wCb) this._wCb(node);
-
             if (this[node.type]) {
-              this._path.push(node);
-
-              // NEW: the context of the node is also saved
-              node._activeCtx = ctx;
-
               this[node.type](node, ctx);
-
-              if (this._break) return;
-
-              this._path.pop();
-
               //-- then either next or parent...
               var next = node._next;
               if (next) {
                 this.walk(next, ctx);
-              } else {
-                // if not... the context goes to parent
-                if (this._path.length == 0) {}
               }
-
-              // if this execution walk is over, but we have a break state available from
-              // some previous execution context, continue from that...
-              /*
-              if(this._path.length==0) {
-                if(this._breakState && this._breakState.path && this._breakState.path.length) {
-                    var returnTo = this._breakState.path.pop();
-                    if(returnTo) {
-                        this.walk( returnTo, returnTo._activeCtx );
-                    }
-                }
-              }
-              */
             } else {
               console.log("Did not find " + node.type);
               console.log(node);
