@@ -379,7 +379,9 @@
 
         var blockCtx = {
           block: true,
-          parentCtx: ctx
+          parentCtx: ctx,
+          letVars: false,
+          constVars: false
         };
 
         var pCtx = ctx;
