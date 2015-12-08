@@ -390,13 +390,15 @@
         while (pCtx && pCtx.block) {
           pCtx = pCtx.parentCtx;
         }
-
-        Object.defineProperty(blockCtx, "variables", {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: pCtx.variables
+        blockCtx.variables = pCtx.variables;
+        /*
+        Object.defineProperty(blockCtx, 'variables', {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: pCtx.variables
         });
+        */
 
         this.walk(node.body, blockCtx, true);
       };
