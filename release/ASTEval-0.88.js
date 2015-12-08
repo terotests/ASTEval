@@ -628,7 +628,6 @@
       _myTrait_.collectVarsAndFns = function (node, ctx, cb) {
         if (!node) return;
         if (!node.type) return;
-
         if (node._fnc) return;
 
         if (node.type == "FunctionExpression") {
@@ -1982,8 +1981,6 @@
 
         this._codeStr = "";
         this._currentLine = "";
-
-        this.listify(node);
 
         var me = this;
         this.collectVarsAndFns(node, ctx, function (node) {
