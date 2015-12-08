@@ -235,6 +235,11 @@
         var me = this;
 
         function node_assign(node, ctx, value) {
+          if (!this.canAccess(value)) {
+            console.error("Access denied for object ", value);
+            assignNode.eval_res = _undefined;
+            return;
+          }
           if (node.type == "MemberExpression") {
 
             var obj, prop;
