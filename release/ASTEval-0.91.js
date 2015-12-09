@@ -624,10 +624,8 @@
        */
       _myTrait_.compileIdentifier = function (name, ctx) {
 
-        if (name === null || name == "null") return [true, null];
-
-        if (name == "undefined") return [true, _undefined];
-
+        // if(name===null || name=="null") return [true,null];
+        // if(name=="undefined") return [true, _undefined];
         // if(typeof(name)=="number") return [true,name];
 
         if (ctx.letVars && _isDeclared(ctx.letVars[name])) return [false, ctx.letVars, name];
@@ -1375,16 +1373,15 @@
        * @param Object ctx  - Context to use
        */
       _myTrait_.Identifier = function (node, ctx) {
-        /*if(node._c) {
-        var c = node._c;
-        if(c[0]) {
-        node.eval_res = c[1]
-        } else {
-        node.eval_res = c[1][c[2]];
+        if (node._c) {
+          var c = node._c;
+          if (c[0]) {
+            node.eval_res = c[1];
+          } else {
+            node.eval_res = c[1][c[2]];
+          }
+          return;
         }
-        return;
-        }
-        */
 
         // accessing the ASTEval is forbidden
         if (node.name == "ASTEval") {
