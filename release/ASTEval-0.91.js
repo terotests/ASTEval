@@ -1373,7 +1373,7 @@
        * @param Object ctx  - Context to use
        */
       _myTrait_.Identifier = function (node, ctx) {
-        if (0 && node._c) {
+        if (node._c) {
           var c = node._c;
           if (c[0]) {
             node.eval_res = c[1];
