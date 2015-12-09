@@ -1375,11 +1375,13 @@
 
         node._c = this.compileIdentifier(node.name, ctx);
         if (node._c) {
-          if (node._c[0]) {
-            node.eval_res = node._c[1];
+          var c = node._c;
+          if (c[0]) {
+            node.eval_res = c[1];
           } else {
-            node.eval_res = node._c[0];
+            node.eval_res = c[1][c[2]];
           }
+          return;
         } else {
           node.eval_res = this.evalVariable(node.name, ctx);
         }
