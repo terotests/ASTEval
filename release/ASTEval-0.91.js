@@ -626,6 +626,8 @@
 
         if (name === null || name == "null") return [true, null];
 
+        if (name == "undefined") return [true, undefined];
+
         // if(typeof(name)=="number") return [true,name];
 
         if (ctx.letVars && _isDeclared(ctx.letVars[name])) return [false, ctx.letVars, name];
