@@ -624,7 +624,7 @@
        */
       _myTrait_.compileIdentifier = function (name, ctx) {
 
-        // if(name===null || name=="null") return [true,null];
+        if (name === null || name == "null") return [true, null];
         // if(name=="undefined") return [true, _undefined];
         // if(typeof(name)=="number") return [true,name];
 
