@@ -626,7 +626,7 @@
 
         if (name === null || name == "null") return [true, null];
 
-        if (name == "undefined") return [true, undefined];
+        if (name == "undefined") return [true, _undefined];
 
         // if(typeof(name)=="number") return [true,name];
 
