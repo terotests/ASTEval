@@ -1384,9 +1384,11 @@
           if (c[0]) {
             node.eval_res = c[1];
           } else {
-            node.eval_res = c[1][c[2]];
+            if (c[1]) {
+              node.eval_res = c[1][c[2]];
+              return;
+            }
           }
-          return;
         }
 
         var c = this.compileIdentifier(node.name, ctx);
