@@ -334,7 +334,7 @@
 
         var a, b;
 
-        if (node.left._c) {
+        if (0 && node.left._c) {
           var c = node.left._c;
           if (c[0]) {
             a = c[1];
@@ -346,7 +346,7 @@
           a = node.left.eval_res;
           if (!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
         }
-        if (node.right._c) {
+        if (0 && node.right._c) {
           var c = node.right._c;
           if (c[0]) {
             b = c[1];
@@ -623,11 +623,10 @@
        * @param Object ctx
        */
       _myTrait_.compileIdentifier = function (name, ctx) {
-        return;
 
         if (name === null || name == "null") return [true, null];
 
-        if (typeof name == "number") return [true, name];
+        // if(typeof(name)=="number") return [true,name];
 
         if (ctx.letVars && _isDeclared(ctx.letVars[name])) return [false, ctx.letVars, name];
 
