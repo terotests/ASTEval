@@ -97,14 +97,9 @@
         // Check values...
         if (node.elements && node.elements.length >= 0) {
           // Walk the array elements
-          this.out("[");
+
           var cnt = 0;
-          node.elements.forEach(function (e) {
-            if (cnt++ > 0) me.out(",");
-            me.trigger("ArrayElement", e);
-            me.walk(e, ctx);
-          });
-          this.out("]");
+          this.walk(node.elements, ctx);
 
           node.eval_res = [];
           node.elements.forEach(function (e) {
