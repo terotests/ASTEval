@@ -1791,24 +1791,21 @@
 
         var me = this;
         try {
-          me.out("{");
           var cnt = 0;
           if (node && node.properties) {
-            if (node.properties.length > 1) me.out("", true);
-            me.indent(1);
-            node.properties.forEach(function (p) {
-              if (cnt++ > 0) me.out(",", true);
-              me.trigger("ObjectExpressionProperty", p);
-              me.walk(p, ctx);
-            });
-            me.indent(-1);
+            this.walk(node.properties, ctx);
           }
-          me.out("}");
 
           node.eval_res = {};
           if (node.properties) {
             node.properties.forEach(function (e) {
-              var v = e.value.eval_res || me.evalVariable(e.value, ctx);
+              var v;
+
+              if (_isDefined(e.value.eval_res)) {
+                v = e.value.eval_res;
+              } else {
+                v = me.evalVariable(e.value, ctx);
+              }
 
               var keyName = e.key.eval_res;
               if (typeof keyName == "undefined") {
