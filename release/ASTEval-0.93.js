@@ -1139,7 +1139,7 @@
         if (node.id) this.walk(node.id, ctx);
 
         node.eval_res = function () {
-          // FunctionDeclaration
+          // FunctionDeclaration statement
           if (me.isKilled()) return;
           var args = [],
               arg_len = arguments.length,
