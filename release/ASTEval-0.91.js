@@ -792,8 +792,20 @@
         if (typeof varName == "number") return name;
 
         if (typeof varName == "object") {
+
           if (typeof varName.eval_res != "undefined") return varName.eval_res;
           var node = varName;
+
+          if (node._c) {
+            var c = node._c;
+            if (c[0]) {
+              node.eval_res = c[1];
+            } else {
+              node.eval_res = c[1][c[2]];
+            }
+            return;
+          }
+
           if (node.type == "Identifier") {
             name = varName.name;
           } else {
