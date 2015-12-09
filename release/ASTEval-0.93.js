@@ -1311,7 +1311,7 @@
           if (tree.type) {
             if (tree._ecnt) covered_cnt++;
             if (options && options.notCoveredCb) {
-              options.notCoveredCb(tree);
+              if (!tree._ecnt) options.notCoveredCb(tree);
             }
             total_cnt++;
           }
