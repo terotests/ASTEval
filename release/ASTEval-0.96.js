@@ -2017,7 +2017,9 @@
        */
       _myTrait_.SequenceExpression = function (node, ctx) {
         if (node.expressions) {
-          this.walk(node.expressions, ctx);
+          this.walk(node.expressions[0], ctx);
+          var last = node.expressions[node.expressions.length - 1];
+          node.eval_res = last.eval_res;
           /*
           node.expressions.forEach( function(n) {
           if(cnt++>0) me.out(",");
