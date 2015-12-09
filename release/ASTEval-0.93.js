@@ -1205,6 +1205,7 @@
 
         // the fn can then be called
         if (node.id && node.id.name) {
+          node.eval_res.__$$name__ = node.id.name;
           ctx.variables[node.id.name] = node.eval_res;
         }
       };
@@ -1292,6 +1293,7 @@
 
         // the fn can then be called
         if (node.id && node.id.name) {
+          node.eval_res.__$$name__ = node.id.name;
           ctx.variables[node.id.name] = node.eval_res;
         }
       };
