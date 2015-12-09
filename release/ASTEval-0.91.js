@@ -1379,8 +1379,8 @@
           return;
         }
 
-        if (node._c) {
-          var c = node._c;
+        if (ctx._c && ctx._c[node.name]) {
+          var c = ctx._c[node.name];
           if (c[0]) {
             node.eval_res = c[1];
           } else {
@@ -1389,9 +1389,12 @@
           return;
         }
 
-        node._c = this.compileIdentifier(node.name, ctx);
-        if (node._c) {
-          var c = node._c;
+        var c = this.compileIdentifier(node.name, ctx);
+        if (c) {
+
+          if (!ctx._c) ctx._c = {};
+          ctx._c[node.name] = comp;
+
           if (c[0]) {
             node.eval_res = c[1];
           } else {
