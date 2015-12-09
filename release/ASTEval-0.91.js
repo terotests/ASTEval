@@ -332,15 +332,32 @@
        */
       _myTrait_.BinaryExpression = function (node, ctx) {
 
-        this.walk(node.left, ctx);
-        this.walk(node.right, ctx);
+        var a, b;
 
-        // evaluate the binary expression
-        var a = node.left.eval_res,
-            b = node.right.eval_res;
-
-        if (!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
-        if (!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
+        if (node.left._c) {
+          var c = node.left._c;
+          if (c[0]) {
+            a = c[1];
+          } else {
+            b = c[1][c[2]];
+          }
+        } else {
+          this.walk(node.left, ctx);
+          a = node.left.eval_res;
+          if (!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
+        }
+        if (node.right._c) {
+          var c = node.right._c;
+          if (c[0]) {
+            a = c[1];
+          } else {
+            b = c[1][c[2]];
+          }
+        } else {
+          this.walk(node.right, ctx);
+          b = node.right.eval_res;
+          if (!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
+        }
 
         a = _toValue(a);
         b = _toValue(b);
