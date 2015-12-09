@@ -1793,19 +1793,16 @@
         try {
           var cnt = 0;
           if (node && node.properties) {
-            this.walk(node.properties, ctx);
+            node.properties.forEach(function (p) {
+              me.trigger("ObjectExpressionProperty", p);
+              me.walk(p, ctx);
+            });
           }
 
           node.eval_res = {};
           if (node.properties) {
             node.properties.forEach(function (e) {
-              var v;
-
-              if (_isDefined(e.value.eval_res)) {
-                v = e.value.eval_res;
-              } else {
-                v = me.evalVariable(e.value, ctx);
-              }
+              var v = e.value.eval_res || me.evalVariable(e.value, ctx);
 
               var keyName = e.key.eval_res;
               if (typeof keyName == "undefined") {
