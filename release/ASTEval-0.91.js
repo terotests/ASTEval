@@ -1292,6 +1292,52 @@
       };
 
       /**
+       * Get code coverage prosents
+       * @param Object node  - AST node to calc coverage
+       */
+      _myTrait_.getCoverage = function (node) {
+        var total_cnt = 0,
+            covered_cnt = 0;
+        var walkTree = function walkTree(tree) {
+          if (!tree) return;
+          if (tree.type) {
+            if (tree._ecnt) covered_cnt++;
+            total_cnt++;
+          }
+          for (var n in tree) {
+            if (tree.hasOwnProperty(n)) {
+              if (n == "_next") continue;
+              if (n == "range") continue;
+              if (n == "comments") continue;
+              var item = tree[n];
+              if (item instanceof Array) {
+
+                for (var i = 0; i < item.length; i++) {
+                  var ii = item[i];
+                  if (typeof ii == "object") {
+                    if (i < item.length - 1) ii._next = item[i + 1];
+                    //if(i>0) ii._prev = item[i-1];
+                    walkTree(ii, tree);
+                  }
+                }
+              } else {
+                if (typeof item == "object") {
+                  walkTree(item, tree);
+                }
+              }
+            }
+          }
+        };
+        walkTree(node);
+
+        return {
+          coverage: covered_cnt / total_cnt,
+          total_cnt: total_cnt,
+          covered_cnt: covered_cnt
+        };
+      };
+
+      /**
        * @param float t
        */
       _myTrait_.getParentProcess = function (t) {
@@ -2472,6 +2518,8 @@
         } else {
           if (node.type) {
             if (this[node.type]) {
+              if (!node._ecnt) node._ecnt = 0;
+              node._ecnt++;
               this[node.type](node, ctx);
               //-- then either next or parent...
               var next = node._next;
