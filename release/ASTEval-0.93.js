@@ -1134,6 +1134,9 @@
        */
       _myTrait_.FunctionDeclaration = function (node, ctx) {
 
+        // Do not declare the function again...
+        if (node.eval_res) return;
+
         var me = this;
 
         if (node.id) this.walk(node.id, ctx);
