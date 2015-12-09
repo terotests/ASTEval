@@ -837,9 +837,7 @@
             if (_globalCtx) {
               if (_isDeclared(_globalCtx[name])) {
                 return _globalCtx[name];
-              } else {
-                throw new ReferenceError(name + " is not defined");
-              }
+              } else {}
             }
             // return window[name];
           }
@@ -2729,6 +2727,8 @@
 }).call(new Function("return this")());
 
 // ok
+
+// throw new ReferenceError(name+" is not defined");
 
 // ok
 
