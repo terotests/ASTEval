@@ -2413,7 +2413,7 @@
 
         var value;
 
-        if (node.argument._c) {
+        if (0 && node.argument._c) {
           var c = node.argument._c;
           if (c[0]) {
             value = c[1];
