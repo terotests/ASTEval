@@ -1136,7 +1136,7 @@
 
         var me = this;
 
-        this.walk(node.id);
+        if (node.id) this.walk(node.id, ctx);
 
         node.eval_res = function () {
 
@@ -1216,6 +1216,8 @@
       _myTrait_.FunctionExpression = function (node, ctx) {
 
         var me = this;
+        if (node.id) this.walk(node.id, ctx);
+
         node.eval_res = function () {
           if (me.isKilled()) return;
           // NOTE: if(node.generator) this.out("*");
