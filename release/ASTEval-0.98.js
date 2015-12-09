@@ -834,7 +834,13 @@
             return this.evalVariable(name, ctx.parentCtx);
           } else {
             // unfortunate constant :/
-            if (_globalCtx) return _globalCtx[name];
+            if (_globalCtx) {
+              if (_isDeclared(_globalCtx[name])) {
+                return _globalCtx[name];
+              } else {
+                throw new ReferenceError(name + " is not defined");
+              }
+            }
             // return window[name];
           }
         }
