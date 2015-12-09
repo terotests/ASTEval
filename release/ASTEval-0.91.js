@@ -1393,7 +1393,7 @@
         if (c) {
 
           if (!ctx._c) ctx._c = {};
-          ctx._c[node.name] = comp;
+          ctx._c[node.name] = c;
 
           if (c[0]) {
             node.eval_res = c[1];
