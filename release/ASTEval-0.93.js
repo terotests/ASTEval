@@ -1301,14 +1301,18 @@
       /**
        * Get code coverage prosents
        * @param Object node  - AST node to calc coverage
+       * @param float options
        */
-      _myTrait_.getCoverage = function (node) {
+      _myTrait_.getCoverage = function (node, options) {
         var total_cnt = 0,
             covered_cnt = 0;
         var walkTree = function walkTree(tree) {
           if (!tree) return;
           if (tree.type) {
             if (tree._ecnt) covered_cnt++;
+            if (options && options.notCoveredCb) {
+              options.notCoveredCb(tree);
+            }
             total_cnt++;
           }
           for (var n in tree) {
