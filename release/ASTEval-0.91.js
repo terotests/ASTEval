@@ -2410,10 +2410,20 @@
        */
       _myTrait_.UpdateExpression = function (node, ctx) {
 
-        this.walk(node.argument, ctx);
+        var value;
 
-        var value = node.argument.eval_value;
-        if (typeof value == "undefined") value = this.evalVariable(node.argument, ctx);
+        if (node.argument._c) {
+          var c = node.argument._c;
+          if (c[0]) {
+            value = c[1];
+          } else {
+            value = c[1][c[2]];
+          }
+        } else {
+          this.walk(node.argument, ctx);
+          var value = node.argument.eval_value;
+          if (typeof value == "undefined") value = this.evalVariable(node.argument, ctx);
+        }
 
         if (node.operator == "++" && typeof value != "undefined") {
           if (!node.prefix) node.eval_res = value;
