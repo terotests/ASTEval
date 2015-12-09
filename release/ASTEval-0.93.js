@@ -1243,19 +1243,26 @@
           // Going the node body with set values or variables...
           var i = 0;
           node.params.forEach(function (p) {
+
             if (p.type == "RestElement") {
               // should be the rest of the string...
               fnCtx.variables[p.argument.name] = args.slice(i);
               i++;
+              if (!p._ecnt) p._cnt = 0;
+              p._ecnt++;
               return;
             }
             if (typeof origArgs[i] != "undefined") {
               fnCtx.variables[p.name] = origArgs[i];
+              if (!p._ecnt) p._ecnt = 0;
+              p._ecnt++;
             } else {
               fnCtx.variables[p.name] = _undefined;
               if (node.defaults && node.defaults[i]) {
                 me.walk(node.defaults[i], ctx);
                 fnCtx.variables[p.name] = node.defaults[i].eval_res;
+                if (!node.defaults._cnt) node.defaults._ecnt = 0;
+                node.defaults._ecnt++;
               }
             }
             i++;
