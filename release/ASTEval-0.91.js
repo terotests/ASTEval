@@ -1462,13 +1462,13 @@
 
         if (!tree) return;
 
-        tree._parent = parentTree;
+        // tree._parent = parentTree;
 
         for (var n in tree) {
           if (tree.hasOwnProperty(n)) {
             if (n == "_next") continue;
-            if (n == "_prev") continue;
-            if (n == "_parent") continue;
+            //if(n=="_prev") continue;
+            //if(n=="_parent") continue;
             if (n == "range") continue;
             if (n == "comments") continue;
             var item = tree[n];
@@ -1478,7 +1478,7 @@
                 var ii = item[i];
                 if (typeof ii == "object") {
                   if (i < item.length - 1) ii._next = item[i + 1];
-                  if (i > 0) ii._prev = item[i - 1];
+                  //if(i>0) ii._prev = item[i-1];
                   this.listify(ii, tree);
                 }
               }
