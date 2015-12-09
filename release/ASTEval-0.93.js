@@ -1135,6 +1135,9 @@
       _myTrait_.FunctionDeclaration = function (node, ctx) {
 
         var me = this;
+
+        this.walk(node.id);
+
         node.eval_res = function () {
 
           if (me.isKilled()) return;
