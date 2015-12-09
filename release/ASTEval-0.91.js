@@ -1793,10 +1793,13 @@
         try {
           var cnt = 0;
           if (node && node.properties) {
-            node.properties.forEach(function (p) {
-              me.trigger("ObjectExpressionProperty", p);
-              me.walk(p, ctx);
+            me.walk(node.properties, ctx);
+            /*
+            node.properties.forEach( function(p) {
+            me.trigger("ObjectExpressionProperty", p);
+            
             });
+            */
           }
 
           node.eval_res = {};
