@@ -54,6 +54,7 @@ var evl = new ASTEval({
 - [ClassBody](README.md#ASTEval_ClassBody)
 - [ClassDeclaration](README.md#ASTEval_ClassDeclaration)
 - [collectVarsAndFns](README.md#ASTEval_collectVarsAndFns)
+- [compileIdentifier](README.md#ASTEval_compileIdentifier)
 - [ConditionalExpression](README.md#ASTEval_ConditionalExpression)
 - [continueAfterBreak](README.md#ASTEval_continueAfterBreak)
 - [ContinueStatement](README.md#ASTEval_ContinueStatement)
@@ -430,14 +431,13 @@ if(_isDeclared( ctx.variables[name] )) {
 
 ```javascript
 
+var a,b;
 this.walk(node.left, ctx);
-this.walk(node.right, ctx);
-
-// evaluate the binary expression
-var a = node.left.eval_res,
-    b = node.right.eval_res;
-
+a = node.left.eval_res;
 if(!_isDeclared(a)) a = this.evalVariable(node.left, ctx);
+
+this.walk(node.right, ctx);
+b = node.right.eval_res;
 if(!_isDeclared(b)) b = this.evalVariable(node.right, ctx);
 
 a = _toValue(a);
@@ -459,6 +459,7 @@ if(node.operator=="<<") return node.eval_res = a << b;
 if(node.operator==">>") return node.eval_res = a >> b;
 if(node.operator==">>>") return node.eval_res = a >>> b;
 
+if(node.operator=="^") return node.eval_res = a ^ b;
 if(node.operator=="==") return node.eval_res = a == b;
 if(node.operator=="!=") return node.eval_res = a != b;
 if(node.operator=="===") return node.eval_res = a === b;
@@ -703,13 +704,38 @@ for(var n in node) {
 }
 ```
 
+### <a name="ASTEval_compileIdentifier"></a>ASTEval::compileIdentifier(name, ctx)
+
+
+```javascript
+
+if(name===null || name=="null") return [true,null];
+// if(name=="undefined") return [true, _undefined];
+// if(typeof(name)=="number") return [true,name];
+
+if(ctx.letVars && _isDeclared( ctx.letVars[name] ))  return [false, ctx.letVars, name];
+
+if(ctx.constVars && _isDeclared( ctx.constVars[name] ) ) return [false, ctx.constVars, name];
+if(ctx.variables && _isDeclared( ctx.variables[name] ))  return [false, ctx.variables, name];
+
+var pc = ctx.parentCtx;
+while(pc) {
+    if(pc.letVars && _isDeclared( pc.letVars[name] ))  return [false, pc.letVars, name];
+    if(pc.constVars && _isDeclared( pc.constVars[name] ) ) return [false, pc.constVars, name];
+    if(pc.variables && _isDeclared( pc.variables[name] ))  return [false, pc.variables, name];  
+    pc = pc.parentCtx;
+}
+if(_globalCtx && (typeof(_globalCtx[name])!="undefined")) return [false, _globalCtx, name];
+
+```
+
 ### <a name="ASTEval_ConditionalExpression"></a>ASTEval::ConditionalExpression(node, ctx)
 
 
 ```javascript
 
 this.walk(node.test, ctx);
-if(node.test.eval_res) {
+if(_toValue(node.test.eval_res)) {
     this.walk(node.consequent,ctx);
     node.eval_res = node.consequent.eval_res;
 } else {
@@ -803,7 +829,7 @@ do {
         max_cnt--;
         if(node.test) {
             this.walk(node.test,ctx);
-            if(!node.test.eval_res) {
+            if(!_toValue(node.test.eval_res)) {
                 break;
             }
         } else {
@@ -863,14 +889,16 @@ this._collecting = false;
 
 ```javascript
 var name;
-if(varName==null || varName=="null") return null;
+if(varName===null || varName=="null") return null;
 if(!ctx) return _undefined;
 
 if(typeof(varName)=="number") return name;
 
 if(typeof(varName)=="object") {
+
     if(typeof(varName.eval_res)!="undefined") return varName.eval_res;
     var node = varName;
+
     if(node.type == "Identifier") {
         name = varName.name;
     } else {
@@ -1154,7 +1182,7 @@ while(max_cnt>0) {
     try {
         if(node.test) {
             this.walk(node.test,myCtx);
-            if(!node.test.eval_res) {
+            if(!_toValue( node.test.eval_res) ) {
                 break;
             }
         } else {
@@ -1430,11 +1458,6 @@ if(node.body) {
 
 ```javascript
 
-// accessing the ASTEval is forbidden
-if(node.name=="ASTEval") {
-    node.eval_res = _undefined;
-    return;
-}
 if(node.name=="undefined") {
     node.eval_res = _undefined;
     return;
@@ -1450,7 +1473,7 @@ node.eval_res = this.evalVariable( node.name, ctx );
 ```javascript
 
 this.walk(node.test, ctx);
-if(node.test.eval_res) {
+if(_toValue(node.test.eval_res)) {
     this.walk(node.consequent,ctx);
 } else {
     this.walk(node.alternate,ctx);
@@ -1565,13 +1588,13 @@ Marks _next, _prev and _parent to the AST nodes to make easier to evaluate
 
 if(!tree) return;
 
-tree._parent = parentTree;
+// tree._parent = parentTree;
 
 for(var n in tree) {
     if(tree.hasOwnProperty(n)) {
         if(n=="_next") continue;
-        if(n=="_prev") continue;
-        if(n=="_parent") continue;
+        //if(n=="_prev") continue;
+        //if(n=="_parent") continue;
         if(n=="range") continue;
         if(n=="comments") continue;
         var item = tree[n];
@@ -1581,7 +1604,7 @@ for(var n in tree) {
                 var ii = item[i];
                 if(typeof(ii)=="object") {
                     if(i < (item.length-1)) ii._next = item[i+1];
-                    if(i>0) ii._prev = item[i-1];
+                    //if(i>0) ii._prev = item[i-1];
                     this.listify( ii, tree );
                 }
             }
@@ -2205,7 +2228,7 @@ this.out("super");
 if(node.test) {
     this.walk(node.test, ctx);
     
-    if(node.test.eval_res == ctx._switchTest.eval_res) {
+    if(_toValue(node.test.eval_res) == _toValue(ctx._switchTest.eval_res)) {
         ctx._switchMatch = true;        
     }
     if(ctx._switchMatch) {
@@ -2453,8 +2476,9 @@ if(true) {
 
 ```javascript
 
-this.walk(node.argument, ctx);
+var value;
 
+this.walk(node.argument, ctx);
 var value = node.argument.eval_value;
 if(typeof(value) == "undefined") value = this.evalVariable( node.argument, ctx);
 
@@ -2510,7 +2534,7 @@ if(node.id) me.walk(node.id, ctx);
 if(node.init) {
     this.out(" = ");
     me.walk( node.init, ctx );
-    if(node.id.name && (typeof( node.init.eval_res) != "undefined" ) ) {
+    if(node.id.name) {
         if(!ctx.variables) ctx.variables = {};
         if(ctx._varKind=="var"){
             ctx.variables[node.id.name] = _wrapValue( node.init.eval_res );
@@ -2619,7 +2643,7 @@ var max_cnt = 1000*1000; // <-- maximum loop count, temporary setting...
         try {
             if(node.test) {
                 this.walk(node.test,ctx);
-                if(!node.test.eval_res) {
+                if(!_toValue(node.test.eval_res)) {
                     break;
                 }
             } else {
