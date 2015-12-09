@@ -1308,6 +1308,9 @@
             if (tree.hasOwnProperty(n)) {
               if (n == "_next") continue;
               if (n == "range") continue;
+              if (n == "eval_res") continue;
+              if (n == "loc") continue;
+
               if (n == "comments") continue;
               var item = tree[n];
               if (item instanceof Array) {
