@@ -76,6 +76,7 @@ var evl = new ASTEval({
 - [FunctionDeclaration](README.md#ASTEval_FunctionDeclaration)
 - [FunctionExpression](README.md#ASTEval_FunctionExpression)
 - [getCode](README.md#ASTEval_getCode)
+- [getCoverage](README.md#ASTEval_getCoverage)
 - [getParentProcess](README.md#ASTEval_getParentProcess)
 - [getStructures](README.md#ASTEval_getStructures)
 - [handleException](README.md#ASTEval_handleException)
@@ -253,9 +254,9 @@ if( node.elements && node.elements.length>0) {
 var me = this;
 var bind_this = this.findThis( ctx );
 node.eval_res = function() {
+    // ArrowFunctionExpression
     if(me.isKilled()) return;
-    // NOTE: if(node.generator) this.out("*");
-    // 
+
     var args = [], arg_len = arguments.length,
         origArgs = arguments;
     // function ctx is the parent ctx.
@@ -1232,18 +1233,19 @@ while(max_cnt>0) {
 
 ```javascript
 
+// Do not declare the function again...
+if(node.eval_res) return;
+
 var me = this;
+
+if(node.id) this.walk(node.id, ctx);
+
 node.eval_res = function() {
-    
+    // FunctionDeclaration statement
     if(me.isKilled()) return;
-    
-    // NOTE: if(node.generator) this.out("*");
-    // 
     var args = [], arg_len = arguments.length,
         origArgs = arguments;
-    // function ctx is the parent ctx.
- 
-    // defining the "this" is left open, perhaps only overriden when needed...
+
     var fnCtx = { functions : {}, vars : {}, variables : {}, parentCtx : ctx};
     fnCtx["this"] = this;
     fnCtx.variables["arguments"] = arguments;
@@ -1297,6 +1299,7 @@ node.params.forEach( function(p) {
 
 // the fn can then be called
 if(node.id && node.id.name) {
+    node.eval_res.__$$name__ = node.id.name;
     ctx.variables[node.id.name] = node.eval_res;
 }
 
@@ -1309,11 +1312,12 @@ if(node.id && node.id.name) {
 ```javascript
 
 var me = this;
-node.eval_res = function() {
-    if(me.isKilled()) return;
-    // NOTE: if(node.generator) this.out("*");
+if(node.id) this.walk(node.id, ctx);
 
-    // 
+node.eval_res = function() {
+    
+    // FunctionExpression
+    if(me.isKilled()) return;
     var args = [], arg_len = arguments.length,
         origArgs = arguments;
     // function ctx is the parent ctx.
@@ -1333,19 +1337,26 @@ node.eval_res = function() {
     // Going the node body with set values or variables...
     var i = 0;
     node.params.forEach(function(p) {
+
         if(p.type=="RestElement") {
             // should be the rest of the string...
             fnCtx.variables[p.argument.name] =  args.slice(i);
             i++;
+            if(!p._ecnt) p._cnt=0;
+            p._ecnt++;            
             return;
         }
         if(typeof(origArgs[i]) != "undefined") {
             fnCtx.variables[p.name] =  origArgs[i];
+            if(!p._ecnt) p._ecnt=0;
+            p._ecnt++;                        
         } else {
             fnCtx.variables[p.name] =  _undefined;
             if(node.defaults && node.defaults[i]) {
                 me.walk(node.defaults[i], ctx);
                 fnCtx.variables[p.name] =  node.defaults[i].eval_res;
+                if(!node.defaults._cnt) node.defaults._ecnt=0;
+                node.defaults._ecnt++;                            
             }
         }
         i++;
@@ -1373,6 +1384,7 @@ node.params.forEach( function(p) {
 
 // the fn can then be called
 if(node.id && node.id.name) {
+    node.eval_res.__$$name__ = node.id.name;
     ctx.variables[node.id.name] = node.eval_res;
 }
 
@@ -1383,6 +1395,59 @@ if(node.id && node.id.name) {
 
 ```javascript
 return this._codeStr;
+```
+
+### <a name="ASTEval_getCoverage"></a>ASTEval::getCoverage(node, options)
+`node` AST node to calc coverage
+ 
+
+Get code coverage prosents
+```javascript
+var total_cnt = 0,
+    covered_cnt = 0;
+var walkTree = function(tree) {
+    if(!tree) return;
+    if(tree.type) {
+        if(tree._ecnt) covered_cnt++;
+        if(options && options.notCoveredCb) {
+            if(!tree._ecnt) options.notCoveredCb( tree );
+        }
+        total_cnt++;
+    }
+    for(var n in tree) {
+        if(tree.hasOwnProperty(n)) {
+            if(n=="_next") continue;
+            if(n=="range") continue;
+            if(n=="eval_res") continue;
+            if(n=="loc") continue;
+            
+            if(n=="comments") continue;
+            var item = tree[n];
+            if(item instanceof Array) {
+                
+                for(var i=0; i<item.length;i++) {
+                    var ii = item[i];
+                    if(typeof(ii)=="object") {
+                        if(i < (item.length-1)) ii._next = item[i+1];
+                        //if(i>0) ii._prev = item[i-1];
+                        walkTree( ii, tree );
+                    }
+                }
+            } else {
+                if(typeof(item) == "object") {
+                    walkTree(item, tree);
+                }
+            }
+        }
+    }
+}
+walkTree( node );
+
+return {
+    coverage : covered_cnt / total_cnt,
+    total_cnt : total_cnt,
+    covered_cnt : covered_cnt
+}
 ```
 
 ### <a name="ASTEval_getParentProcess"></a>ASTEval::getParentProcess(t)
@@ -1597,7 +1662,13 @@ for(var n in tree) {
         //if(n=="_parent") continue;
         if(n=="range") continue;
         if(n=="comments") continue;
+        if(n=="loc") continue;
+        if(n=="eval_res") continue;
+        
         var item = tree[n];
+        
+        if(typeof(item) == "function") continue;
+        
         if(item instanceof Array) {
             
             for(var i=0; i<item.length;i++) {
@@ -1893,30 +1964,27 @@ this.assignTo(node, ctx, value);
 
 var me = this;
 try {
-    me.out("{");
     var cnt=0;
     if(node && node.properties) {
-        if(node.properties.length>1) me.out("", true);
-        me.indent(1);
+        me.walk(node.properties, ctx);
+        /*
         node.properties.forEach( function(p) {
-            if(cnt++>0) me.out(",", true);
             me.trigger("ObjectExpressionProperty", p);
-            me.walk(p, ctx);
+            
         });
-        me.indent(-1);
+        */
     } 
-    me.out("}");
-    
+
     node.eval_res = {};
     if(node.properties) {
         node.properties.forEach( function(e) {
             var v = e.value.eval_res || me.evalVariable(e.value, ctx);
-            
+
             var keyName = e.key.eval_res;
             if(typeof(keyName)=="undefined") {
                 keyName = me.evalVariable( e.key, ctx );
             }
-            
+
             node.eval_res[keyName] = v;
         });    
     }
@@ -2152,6 +2220,7 @@ this.collectVarsAndFns(node,ctx, function(node) {
 
         node.eval_res = function() {
             
+            // FunctionDeclaration
             if(me.isKilled()) return;
             
             // NOTE: if(node.generator) this.out("*");
@@ -2202,6 +2271,7 @@ this.collectVarsAndFns(node,ctx, function(node) {
         node.eval_res.__$$pLength__ = node.params.length;
         // the fn can then be called
         if(node.id && node.id.name) {
+            node.eval_res.__$$name__ = node.id.name;
             ctx.variables[node.id.name] = node.eval_res;
         }
 
@@ -2595,6 +2665,8 @@ if(node instanceof Array) {
 } else {
     if(node.type) {
         if(this[node.type]) {
+            if(!node._ecnt) node._ecnt = 0;
+            node._ecnt++;
             this[node.type](node, ctx);
             //-- then either next or parent...
             var next = node._next;
