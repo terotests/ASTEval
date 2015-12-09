@@ -1538,7 +1538,13 @@
             //if(n=="_parent") continue;
             if (n == "range") continue;
             if (n == "comments") continue;
+            if (n == "loc") continue;
+            if (n == "eval_res") continue;
+
             var item = tree[n];
+
+            if (typeof item == "function") continue;
+
             if (item instanceof Array) {
 
               for (var i = 0; i < item.length; i++) {
