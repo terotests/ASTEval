@@ -1373,6 +1373,12 @@
        * @param Object ctx  - Context to use
        */
       _myTrait_.Identifier = function (node, ctx) {
+
+        if (node.name == "undefined") {
+          node.eval_res = _undefined;
+          return;
+        }
+
         if (node._c) {
           var c = node._c;
           if (c[0]) {
@@ -1380,16 +1386,6 @@
           } else {
             node.eval_res = c[1][c[2]];
           }
-          return;
-        }
-
-        // accessing the ASTEval is forbidden
-        if (node.name == "ASTEval") {
-          node.eval_res = _undefined;
-          return;
-        }
-        if (node.name == "undefined") {
-          node.eval_res = _undefined;
           return;
         }
 
