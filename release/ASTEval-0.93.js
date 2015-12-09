@@ -1139,17 +1139,12 @@
         if (node.id) this.walk(node.id, ctx);
 
         node.eval_res = function () {
-
+          // FunctionDeclaration
           if (me.isKilled()) return;
-
-          // NOTE: if(node.generator) this.out("*");
-          //
           var args = [],
               arg_len = arguments.length,
               origArgs = arguments;
-          // function ctx is the parent ctx.
 
-          // defining the "this" is left open, perhaps only overriden when needed...
           var fnCtx = {
             functions: {},
             vars: {},
@@ -1220,10 +1215,9 @@
         if (node.id) this.walk(node.id, ctx);
 
         node.eval_res = function () {
-          if (me.isKilled()) return;
-          // NOTE: if(node.generator) this.out("*");
 
-          //
+          // FunctionExpression
+          if (me.isKilled()) return;
           var args = [],
               arg_len = arguments.length,
               origArgs = arguments;
