@@ -1394,7 +1394,7 @@
         }
 
         node._c = this.compileIdentifier(node.name, ctx);
-        if (0 && ode._c) {
+        if (node._c) {
           var c = node._c;
           if (c[0]) {
             node.eval_res = c[1];
