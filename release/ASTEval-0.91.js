@@ -602,6 +602,30 @@
       };
 
       /**
+       * @param Object name
+       * @param Object ctx
+       */
+      _myTrait_.compileIdentifier = function (name, ctx) {
+        if (name === null || name == "null") return [true, null];
+
+        if (typeof name == "number") return [true, name];
+
+        if (ctx.letVars && _isDeclared(ctx.letVars[name])) return [false, ctx.letVars, name];
+
+        if (ctx.constVars && _isDeclared(ctx.constVars[name])) return [false, ctx.constVars, name];
+        if (ctx.variables && _isDeclared(ctx.variables[name])) return [false, ctx.variables, name];
+
+        var pc = ctx.parentCtx;
+        while (pc) {
+          if (pc.letVars && _isDeclared(pc.letVars[name])) return [false, pc.letVars, name];
+          if (pc.constVars && _isDeclared(pc.constVars[name])) return [false, pc.constVars, name];
+          if (pc.variables && _isDeclared(pc.variables[name])) return [false, pc.variables, name];
+          pc = pc.parentCtx;
+        }
+        if (_globalCtx && typeof _globalCtx[name] != "undefined") return [false, _globalCtx, name];
+      };
+
+      /**
        * @param Object node
        * @param Object ctx
        */
@@ -762,7 +786,7 @@
        */
       _myTrait_.evalVariable = function (varName, ctx) {
         var name;
-        if (varName == null || varName == "null") return null;
+        if (varName === null || varName == "null") return null;
         if (!ctx) return _undefined;
 
         if (typeof varName == "number") return name;
@@ -1329,6 +1353,15 @@
        * @param Object ctx  - Context to use
        */
       _myTrait_.Identifier = function (node, ctx) {
+        if (node._c) {
+          var c = node._c;
+          if (c[0]) {
+            node.eval_res = c[1];
+          } else {
+            node.eval_res = c[1][c[2]];
+          }
+          return;
+        }
 
         // accessing the ASTEval is forbidden
         if (node.name == "ASTEval") {
@@ -1339,7 +1372,17 @@
           node.eval_res = _undefined;
           return;
         }
-        node.eval_res = this.evalVariable(node.name, ctx);
+
+        node._c = this.compileIdentifier(node.name, ctx);
+        if (node._c) {
+          if (node._c[0]) {
+            node.eval_res = node._c[1];
+          } else {
+            node.eval_res = node._c[0];
+          }
+        } else {
+          node.eval_res = this.evalVariable(node.name, ctx);
+        }
       };
 
       /**
