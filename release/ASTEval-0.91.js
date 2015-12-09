@@ -1378,34 +1378,7 @@
           node.eval_res = _undefined;
           return;
         }
-
-        if (ctx._c && ctx._c[node.name]) {
-          var c = ctx._c[node.name];
-          if (c[0]) {
-            node.eval_res = c[1];
-          } else {
-            if (c[1]) {
-              node.eval_res = c[1][c[2]];
-              return;
-            }
-          }
-        }
-
-        var c = this.compileIdentifier(node.name, ctx);
-        if (c) {
-
-          if (!ctx._c) ctx._c = {};
-          ctx._c[node.name] = c;
-
-          if (c[0]) {
-            node.eval_res = c[1];
-          } else {
-            node.eval_res = c[1][c[2]];
-          }
-          return;
-        } else {
-          node.eval_res = this.evalVariable(node.name, ctx);
-        }
+        node.eval_res = this.evalVariable(node.name, ctx);
       };
 
       /**
