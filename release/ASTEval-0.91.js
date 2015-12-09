@@ -339,7 +339,7 @@
           if (c[0]) {
             a = c[1];
           } else {
-            b = c[1][c[2]];
+            a = c[1][c[2]];
           }
         } else {
           this.walk(node.left, ctx);
@@ -349,7 +349,7 @@
         if (node.right._c) {
           var c = node.right._c;
           if (c[0]) {
-            a = c[1];
+            b = c[1];
           } else {
             b = c[1][c[2]];
           }
