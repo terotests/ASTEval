@@ -1375,15 +1375,16 @@
        * @param Object ctx  - Context to use
        */
       _myTrait_.Identifier = function (node, ctx) {
-        if (node._c) {
-          var c = node._c;
-          if (c[0]) {
-            node.eval_res = c[1];
-          } else {
-            node.eval_res = c[1][c[2]];
-          }
-          return;
+        /*if(node._c) {
+        var c = node._c;
+        if(c[0]) {
+        node.eval_res = c[1]
+        } else {
+        node.eval_res = c[1][c[2]];
         }
+        return;
+        }
+        */
 
         // accessing the ASTEval is forbidden
         if (node.name == "ASTEval") {
