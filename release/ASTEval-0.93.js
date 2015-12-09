@@ -150,9 +150,9 @@
         var me = this;
         var bind_this = this.findThis(ctx);
         node.eval_res = function () {
+          // ArrowFunctionExpression
           if (me.isKilled()) return;
-          // NOTE: if(node.generator) this.out("*");
-          //
+
           var args = [],
               arg_len = arguments.length,
               origArgs = arguments;
