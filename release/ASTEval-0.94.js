@@ -2103,6 +2103,11 @@
             if (!node._ecnt) node._ecnt = 0;
             node._ecnt++;
 
+            if (node.id) {
+              if (!node.id._ecnt) node.id._ecnt = 0;
+              node.id._ecnt++;
+            }
+
             node.eval_res = function () {
 
               // FunctionDeclaration
