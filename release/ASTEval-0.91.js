@@ -623,6 +623,8 @@
        * @param Object ctx
        */
       _myTrait_.compileIdentifier = function (name, ctx) {
+        return;
+
         if (name === null || name == "null") return [true, null];
 
         if (typeof name == "number") return [true, name];
