@@ -1639,6 +1639,8 @@
         if (node.computed) {
           this.walk(node.property, ctx);
         } else {
+          // TODO: to make possible rising reference errors, walk only computed side
+          // and mark this as exectued
           this.walk(node.property, ctx);
         }
 
