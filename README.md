@@ -1,4 +1,12 @@
 
+TODO:
+
+mutta ainakin 3 virhekategoriaa löytyi 
+1) eval koodin suoritus 
+2) joidenkin erikoismuuttujien delete etc. operaatiot 
+3) strict moden säännöt
+4) this variablen assignointi
+5) ReferenceError undfined vars
 
 ```javascript
 
@@ -196,15 +204,10 @@ var me = this;
 // Check values...
 if( node.elements && node.elements.length>=0) {
     // Walk the array elements
-    this.out("[");
-    var cnt=0;
-    node.elements.forEach( function(e) {
-        if(cnt++>0) me.out(",");
-        me.trigger("ArrayElement", e);
-        me.walk(e, ctx);
-    })
-    this.out("]");
     
+    var cnt=0;
+    this.walk(node.elements, ctx);
+
     node.eval_res = [];
     node.elements.forEach( function(e) {
         var v = e.eval_res || me.evalVariable(e, ctx);
@@ -943,7 +946,14 @@ if(_isDeclared( ctx.variables[name]))  {
         return this.evalVariable(name, ctx.parentCtx);
     } else {
         // unfortunate constant :/ 
-        if(_globalCtx) return _globalCtx[name];
+        if(_globalCtx) {
+            if(_isDeclared(_globalCtx[name])) {
+                return _globalCtx[name];
+            } else {
+                // throw new ReferenceError(name+" is not defined");
+            }
+            
+        }
         // return window[name];
     }
 }
@@ -1658,8 +1668,6 @@ if(!tree) return;
 for(var n in tree) {
     if(tree.hasOwnProperty(n)) {
         if(n=="_next") continue;
-        //if(n=="_prev") continue;
-        //if(n=="_parent") continue;
         if(n=="range") continue;
         if(n=="comments") continue;
         if(n=="loc") continue;
@@ -1746,6 +1754,8 @@ this.walk(node.object,ctx);
 if(node.computed) {
     this.walk(node.property, ctx);    
 } else {
+    // TODO: to make possible rising reference errors, walk only computed side
+    // and mark this as exectued
     this.walk(node.property, ctx);    
 }
 
@@ -1783,6 +1793,8 @@ if(!_isUndef(oo)) {
     } catch(e) {
         
     }
+} else {
+    throw new ReferenceError("Trying to evaluate property of undefined");
 }
 
 
@@ -1919,6 +1931,7 @@ if(node.type=="MemberExpression") {
     } else {
         prop = node.property.name;
     }
+    if(!obj) throw new ReferenceError("Trying to evaluate property of undefined");
     if(obj && (typeof(prop)!="undefined")) {
         obj[prop] = _wrapValue( value );
         assignNode.eval_res = _wrapValue( value );
@@ -1949,6 +1962,7 @@ if(node.type=="MemberExpression") {
     } else {
         prop = node.property.name;
     }
+    if(!obj) throw new ReferenceError("Trying to evaluate property of undefined");
     if(obj && prop) {
         obj[prop] = value;
     }
@@ -2129,15 +2143,16 @@ throw { type : "return" };
 
 ```javascript
 if(node.expressions) {
-    var me = this;
-    var cnt = 0;
-    this.out("(");
+    this.walk(node.expressions[0], ctx);
+    var last = node.expressions[node.expressions.length-1];
+    node.eval_res = last.eval_res;
+    /*
     node.expressions.forEach( function(n) {
         if(cnt++>0) me.out(",");
         me.walk( n, ctx );
         node.eval_res = n.eval_res;
     })
-    this.out(")");
+    */
 }
 ```
 
@@ -2218,6 +2233,14 @@ this.collectVarsAndFns(node,ctx, function(node) {
     
     if(node.type=="FunctionDeclaration") {
 
+        if(!node._ecnt) node._ecnt = 0;
+        node._ecnt++;
+        
+        if(node.id) {
+            if(!node.id._ecnt) node.id._ecnt=0;
+            node.id._ecnt++;
+        }
+        
         node.eval_res = function() {
             
             // FunctionDeclaration
@@ -2241,14 +2264,26 @@ this.collectVarsAndFns(node,ctx, function(node) {
             // Going the node body with set values or variables...
             var i = 0;
             node.params.forEach(function(p) {
-                
+        
+                if(p.type=="RestElement") {
+                    // should be the rest of the string...
+                    fnCtx.variables[p.argument.name] =  args.slice(i);
+                    i++;
+                    if(!p._ecnt) p._cnt=0;
+                    p._ecnt++;            
+                    return;
+                }
                 if(typeof(origArgs[i]) != "undefined") {
                     fnCtx.variables[p.name] =  origArgs[i];
+                    if(!p._ecnt) p._ecnt=0;
+                    p._ecnt++;                        
                 } else {
                     fnCtx.variables[p.name] =  _undefined;
                     if(node.defaults && node.defaults[i]) {
                         me.walk(node.defaults[i], ctx);
                         fnCtx.variables[p.name] =  node.defaults[i].eval_res;
+                        if(!node.defaults._cnt) node.defaults._ecnt=0;
+                        node.defaults._ecnt++;                            
                     }
                 }
                 i++;
