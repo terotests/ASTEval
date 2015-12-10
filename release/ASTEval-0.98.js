@@ -91,6 +91,9 @@
             globals: _globalCtx,
             accessDenied: _accessDenied
           });
+
+          evl._strictMode = this._strictMode;
+
           evl.listify(rawAST);
           evl.startWalk(rawAST, ctx);
         } catch (e) {}
