@@ -182,6 +182,7 @@
           };
           fnCtx["this"] = bind_this;
           var evl = new ASTEval();
+          evl._strictMode = me._strictMode;
 
           for (var i = 0; i < arg_len; i++) {
             args[i] = arguments[i];
@@ -1198,6 +1199,7 @@
             fnCtx.variables["new.target"] = node.eval_res;
           }
           var evl = new ASTEval();
+          evl._strictMode = me._strictMode;
 
           for (var i = 0; i < arg_len; i++) {
             args[i] = arguments[i];
@@ -1277,7 +1279,7 @@
             fnCtx.variables["new.target"] = node.eval_res;
           }
           var evl = new ASTEval();
-
+          evl._strictMode = me._strictMode;
           for (var i = 0; i < arg_len; i++) {
             args[i] = arguments[i];
           }
