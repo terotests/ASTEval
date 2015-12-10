@@ -1633,7 +1633,6 @@
         // The strict mode is used from now on...
         if (node.value == "use strict") {
           this._strictMode = true;
-          console.log("*** strict mode ***");
         }
       };
 
