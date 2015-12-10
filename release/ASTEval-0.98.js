@@ -1790,7 +1790,7 @@
                 // --> creating a new function declaration
                 var codeStr = "function newFn(";
                 for (var aa = 0; aa < node.arguments.length - 1; aa++) {
-                  if (a > 0) codeStr += ",";
+                  if (aa > 0) codeStr += ",";
                   codeStr += a[aa];
                 }
                 codeStr += "){";
