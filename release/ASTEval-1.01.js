@@ -2673,6 +2673,25 @@
        */
       _myTrait_.walk = function (node, ctx, newLine) {
 
+        if (this._fast) {
+          if (!node) return;
+          if (node instanceof Array) {
+            var firstItem = node[0];
+            this.walk(firstItem, ctx);
+            return;
+          } else {
+            var t = node.type;
+            if (!node._ecnt) node._ecnt = 0;
+            node._ecnt++;
+            this[t](node, ctx);
+            if (node._next) {
+              this.walk(node._next, ctx);
+            }
+            return;
+          }
+          return;
+        }
+
         if (!node) return;
         if (this.isKilled()) return;
 
