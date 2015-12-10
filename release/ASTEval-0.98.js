@@ -1940,7 +1940,6 @@
           } else {
             prop = node.property.name;
           }
-          if (!obj) throw new ReferenceError("Trying to evaluate property of undefined");
           if (obj && typeof prop != "undefined") {
             obj[prop] = _wrapValue(value);
             assignNode.eval_res = _wrapValue(value);
@@ -1973,7 +1972,6 @@
           } else {
             prop = node.property.name;
           }
-          if (!obj) throw new ReferenceError("Trying to evaluate property of undefined");
           if (obj && prop) {
             obj[prop] = value;
           }
