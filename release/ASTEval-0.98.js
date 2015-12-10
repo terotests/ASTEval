@@ -1675,9 +1675,7 @@
               node.eval_res = oo[prop];
             }
           } catch (e) {}
-        } else {
-          throw new ReferenceError("Trying to evaluate property of undefined");
-        }
+        } else {}
       };
 
       /**
@@ -2735,6 +2733,8 @@
 // ok
 
 // ok
+
+// throw new ReferenceError("Trying to evaluate property of undefined");
 
 //if(node.argument) this.trigger("RestArgument", node.argument);
 //this.out(" ...");
