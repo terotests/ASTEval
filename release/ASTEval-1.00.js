@@ -2689,18 +2689,25 @@
           if (!firstItem) return;
           this.walk(firstItem, ctx);
         } else {
-          if (node.type) {
-            if (this[node.type]) {
+          var t = node.type;
+          if (t) {
+            if (this[t]) {
               if (!node._ecnt) node._ecnt = 0;
               node._ecnt++;
-              this[node.type](node, ctx);
+              if (this["Before" + t]) {
+                this["Before" + t](node, ctx);
+              }
+              this[t](node, ctx);
+              if (this["After" + t]) {
+                this["After" + t](node, ctx);
+              }
               //-- then either next or parent...
               var next = node._next;
               if (next) {
                 this.walk(next, ctx);
               }
             } else {
-              console.log("Did not find " + node.type);
+              console.log("Did not find " + t);
               console.log(node);
             }
           }
