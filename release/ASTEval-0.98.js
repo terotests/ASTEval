@@ -80,6 +80,23 @@
       // Initialize static variables here...
 
       /**
+       * @param String codeStr  - The code string to run
+       * @param Object ctx  - The context to run the code
+       */
+      _myTrait_._eval = function (codeStr, ctx) {
+        try {
+
+          var rawAST = esprima.parse(codeStr, {});
+          var evl = new ASTEval({
+            globals: _globalCtx,
+            accessDenied: _accessDenied
+          });
+          evl.listify(rawAST);
+          evl.startWalk(rawAST, ctx);
+        } catch (e) {}
+      };
+
+      /**
        * @param float t
        */
       _myTrait_._getUndefined = function (t) {
@@ -458,6 +475,7 @@
             // Todo : define calls to 'this'
 
             var this_pointer = ctx["this"]; // <- or global this perhaps
+            var b_is_member = false;
             if (node.callee.type == "MemberExpression") {
               // this.walk(node.callee, ctx);
               this_pointer = node.callee.object.eval_res;
@@ -466,9 +484,27 @@
                 node.eval_res = _undefined;
                 return;
               }
+              b_is_member = true;
             }
             if (node.callee.type == "ThisExpression") {
               if (ctx.parentCtx) this_pointer = ctx.parentCtx["this"];
+            }
+
+            // in case we are calling eval
+            if (node.callee.name && node.callee.name == "eval") {
+              if (!b_is_member) {
+
+                // the eval call is special...
+                var evalCtx = me.createContext(ctx);
+                if (me._strictMode) {
+                  evalCtx["this"] = _undefined;
+                } else {
+                  evalCtx["this"] = _globalCtx;
+                }
+                me._eval(args[0], evalCtx);
+                node.eval_res = undefined;
+                return;
+              }
             }
 
             if (typeof fnToCall == "function") {
