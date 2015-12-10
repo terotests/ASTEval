@@ -1620,11 +1620,16 @@
        * @param float ctx
        */
       _myTrait_.Literal = function (node, ctx) {
-        this.out(node.raw);
 
         // set evaluated values to the node to be used later if necessary
         node.eval_res = node.value;
         node.eval_type = typeof node.value;
+
+        // The strict mode is used from now on...
+        if (node.value == "use strict") {
+          this._strictMode = true;
+          console.log("*** strict mode ***");
+        }
       };
 
       /**
