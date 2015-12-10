@@ -1885,7 +1885,7 @@
                 keyName = me.evalVariable(e.key, ctx);
               }
 
-              node.eval_res[keyName] = v;
+              node.eval_res[keyName] = _toValue(v);
             });
           }
         } catch (e) {
