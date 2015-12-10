@@ -1785,8 +1785,90 @@
                 }
               });
 
-              // --> there is no this pointer for the functions
-              // fnToCall.__newTarget__ = fnToCall;
+              // special case for new Function expression, to create new function...
+              if (node.callee.name == "Function") {
+                // --> creating a new function declaration
+                var codeStr = "function newFn(";
+                for (var aa = 0; aa < node.arguments.length - 1; aa++) {
+                  if (a > 0) codeStr += ",";
+                  codeStr += a[aa];
+                }
+                codeStr += "){";
+                codeStr += a[aa];
+                codeStr += "}";
+
+                var fnAST = esprima.parse(codeStr, {}).body[0];
+                var evl = new ASTEval({
+                  globals: _globalCtx,
+                  accessDenied: _accessDenied
+                });
+                evl._strictMode = this._strictMode;
+                evl.listify(fnAST);
+
+                node.eval_res = function () {
+                  // FunctionDeclaration statement
+                  if (me.isKilled()) return;
+                  var args = [],
+                      arg_len = arguments.length,
+                      origArgs = arguments;
+
+                  // NOTE: running in the global context ...
+                  var fnCtx = {
+                    functions: {},
+                    vars: {},
+                    variables: {},
+                    parentCtx: _globalCtx
+                  };
+                  fnCtx["this"] = this;
+                  fnCtx.variables["arguments"] = arguments;
+                  if (this instanceof node.eval_res) {
+                    fnCtx.variables["new.target"] = node.eval_res;
+                  }
+                  var evl = new ASTEval();
+                  evl._strictMode = me._strictMode;
+
+                  for (var i = 0; i < arg_len; i++) {
+                    args[i] = arguments[i];
+                  }
+                  // Going the node body with set values or variables...
+                  var i = 0;
+                  fnAST.params.forEach(function (p) {
+                    if (p.type == "RestElement") {
+                      // should be the rest of the string...
+                      fnCtx.variables[p.argument.name] = args.slice(i);
+                      i++;
+                      return;
+                    }
+                    if (typeof origArgs[i] != "undefined") {
+                      fnCtx.variables[p.name] = origArgs[i];
+                    } else {
+                      fnCtx.variables[p.name] = _undefined;
+                      if (fnAST.defaults && fnAST.defaults[i]) {
+                        me.walk(fnAST.defaults[i], ctx);
+                        fnCtx.variables[p.name] = fnAST.defaults[i].eval_res;
+                      }
+                    }
+                    i++;
+                  });
+
+                  try {
+                    evl.startWalk(fnAST.body, fnCtx);
+                  } catch (msg) {
+                    if (msg.type == "return") {} else {
+                      throw msg;
+                    }
+                  }
+
+                  // returned value is simply
+                  return fnCtx.return_value;
+                };
+                node.eval_res.__$$pLength__ = fnAST.params.length;
+                fnAST.params.forEach(function (p) {
+                  if (p.type == "RestElement") node.eval_res.__$$pLength__--;
+                });
+
+                return;
+              }
 
               if (!me.canAccess(fnToCall)) {
                 node.eval_res = _undefined;
@@ -2781,6 +2863,8 @@
 // ok
 
 // throw new ReferenceError("Trying to evaluate property of undefined");
+
+// ok
 
 //if(node.argument) this.trigger("RestArgument", node.argument);
 //this.out(" ...");
