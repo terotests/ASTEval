@@ -45,6 +45,7 @@ var evl = new ASTEval({
 #### Class ASTEval
 
 
+- [_eval](README.md#ASTEval__eval)
 - [_getUndefined](README.md#ASTEval__getUndefined)
 - [ArrayExpression](README.md#ASTEval_ArrayExpression)
 - [ArrayPattern](README.md#ASTEval_ArrayPattern)
@@ -66,6 +67,7 @@ var evl = new ASTEval({
 - [ConditionalExpression](README.md#ASTEval_ConditionalExpression)
 - [continueAfterBreak](README.md#ASTEval_continueAfterBreak)
 - [ContinueStatement](README.md#ASTEval_ContinueStatement)
+- [createChildProcess](README.md#ASTEval_createChildProcess)
 - [createContext](README.md#ASTEval_createContext)
 - [DebuggerStatement](README.md#ASTEval_DebuggerStatement)
 - [DoWhileStatement](README.md#ASTEval_DoWhileStatement)
@@ -87,6 +89,7 @@ var evl = new ASTEval({
 - [getCoverage](README.md#ASTEval_getCoverage)
 - [getParentProcess](README.md#ASTEval_getParentProcess)
 - [getStructures](README.md#ASTEval_getStructures)
+- [getTrace](README.md#ASTEval_getTrace)
 - [handleException](README.md#ASTEval_handleException)
 - [Identifier](README.md#ASTEval_Identifier)
 - [IfStatement](README.md#ASTEval_IfStatement)
@@ -187,6 +190,32 @@ The class has following internal singleton variables:
 * _accessDenied
         
         
+### <a name="ASTEval__eval"></a>ASTEval::_eval(codeStr, ctx)
+`codeStr` The code string to run
+ 
+`ctx` The context to run the code 
+ 
+
+
+```javascript
+try {
+    
+    var rawAST = esprima.parse(codeStr, { });
+    var evl = new ASTEval({
+        globals : _globalCtx,
+        accessDenied : _accessDenied
+    });
+    
+    evl._strictMode = this._strictMode;
+    
+    evl.listify( rawAST );
+    evl.startWalk(rawAST, ctx);
+        
+} catch(e) {
+    
+}
+```
+
 ### <a name="ASTEval__getUndefined"></a>ASTEval::_getUndefined(t)
 
 
@@ -267,7 +296,8 @@ node.eval_res = function() {
     // defining the "this" is left open, perhaps only overriden when needed...
     var fnCtx = { functions : {}, vars : {}, variables : {}, parentCtx : ctx};    
     fnCtx["this"] = bind_this;
-    var evl = new ASTEval();
+    var evl = me.createChildProcess();
+    // evl._strictMode = me._strictMode;
     
     for(var i=0; i<arg_len; i++) {
         args[i] = arguments[i];
@@ -562,6 +592,7 @@ if(node.callee) {
         // Todo : define calls to 'this'
         
         var this_pointer = ctx["this"]; // <- or global this perhaps 
+        var b_is_member = false;
         if(node.callee.type=="MemberExpression") {
             // this.walk(node.callee, ctx);
             this_pointer = node.callee.object.eval_res;
@@ -569,11 +600,29 @@ if(node.callee) {
                 console.error("Access denied for object ", this_pointer);
                 node.eval_res = _undefined;
                 return;
-            }            
+            }    
+            b_is_member = true;
         }
         if(node.callee.type=="ThisExpression") {
             if(ctx.parentCtx) this_pointer = ctx.parentCtx["this"];
         }        
+        
+        // in case we are calling eval
+        if(node.callee.name && node.callee.name=="eval") {
+            if(!b_is_member) {
+                
+                // the eval call is special...
+                var evalCtx = me.createContext(ctx);
+                if(me._strictMode) {
+                    evalCtx["this"] = _undefined;
+                } else {
+                    evalCtx["this"] = _globalCtx;
+                }
+                me._eval(args[0], evalCtx);
+                node.eval_res = undefined;
+                return;
+            }
+        }
         
         if(typeof(fnToCall) == "function") {
             node.eval_res = fnToCall.apply( this_pointer, args);
@@ -776,6 +825,25 @@ if(state && this._break) {
 ```javascript
 
 throw { type : "continue", label : node.label };
+```
+
+### <a name="ASTEval_createChildProcess"></a>ASTEval::createChildProcess(options)
+
+
+```javascript
+
+if(!options) {
+    options = {};
+}
+
+var evl = new ASTEval();
+evl._strictMode = this._strictMode;
+evl._trace = this._trace;
+if(this._trace) {
+    evl._traceRes = this._traceRes;
+}
+
+return evl;
 ```
 
 ### <a name="ASTEval_createContext"></a>ASTEval::createContext(ctx, isBlock)
@@ -1262,7 +1330,8 @@ node.eval_res = function() {
     if (this instanceof node.eval_res) {
         fnCtx.variables["new.target"] = node.eval_res;
     }      
-    var evl = new ASTEval();
+    var evl = me.createChildProcess();
+    evl._strictMode = me._strictMode;
     
     for(var i=0; i<arg_len; i++) {
         args[i] = arguments[i];
@@ -1339,8 +1408,8 @@ node.eval_res = function() {
     if (this instanceof node.eval_res) {
         fnCtx.variables["new.target"] = node.eval_res;
     }    
-    var evl = new ASTEval();
-    
+    var evl = me.createChildProcess();
+
     for(var i=0; i<arg_len; i++) {
         args[i] = arguments[i];
     }
@@ -1474,6 +1543,13 @@ return this._parentProcess;
 return this._structures;
 ```
 
+### <a name="ASTEval_getTrace"></a>ASTEval::getTrace(t)
+
+
+```javascript
+return this._traceRes;
+```
+
 ### <a name="ASTEval_handleException"></a>ASTEval::handleException(e)
 `e` Exception object
  
@@ -1577,6 +1653,7 @@ this._tabChar = "  ";
 this._codeStr = "";
 this._currentLine = "";
 this._indent = 0;
+this._traceRes = [];
 
 this._options = options || {};
 
@@ -1585,6 +1662,10 @@ if(this._options.globals) {
 }
 if(this._options.accessDenied) {
     _accessDenied = this._options.accessDenied;
+}
+
+if(this._options.trace) {
+    this._trace = this._options.trace;
 }
 
 if(!_globalCtx) _globalCtx = {};
@@ -1700,11 +1781,15 @@ for(var n in tree) {
 
 
 ```javascript
-this.out(node.raw);
 
 // set evaluated values to the node to be used later if necessary
 node.eval_res = node.value;
 node.eval_type = typeof(node.value);
+
+// The strict mode is used from now on...
+if(node.value=="use strict") {
+    this._strictMode = true;
+}
 ```
 
 ### <a name="ASTEval_LogicalExpression"></a>ASTEval::LogicalExpression(node, ctx)
@@ -1794,7 +1879,7 @@ if(!_isUndef(oo)) {
         
     }
 } else {
-    throw new ReferenceError("Trying to evaluate property of undefined");
+    // throw new ReferenceError("Trying to evaluate property of undefined");
 }
 
 
@@ -1858,8 +1943,87 @@ if(node.callee) {
                 }
             });
             
-            // --> there is no this pointer for the functions
-            // fnToCall.__newTarget__ = fnToCall;
+            // special case for new Function expression, to create new function...
+            if( node.callee.name == "Function") {
+                // --> creating a new function declaration
+                var codeStr ="function newFn(";
+                for(var aa = 0; aa < node.arguments.length-1; aa++) {
+                    if(aa>0) codeStr+=",";
+                    codeStr+=a[aa];
+                }
+                codeStr+="){";
+                codeStr+= a[aa];
+                codeStr+="}";                
+                
+                var fnAST = esprima.parse(codeStr, { }).body[0];
+                var evl = me.createChildProcess({
+                    globals : _globalCtx,
+                    accessDenied : _accessDenied
+                });
+                // evl._strictMode = this._strictMode;
+                evl.listify( fnAST );              
+
+                node.eval_res = function() {
+                    // FunctionDeclaration statement
+                    if(me.isKilled()) return;
+                    var args = [], arg_len = arguments.length,
+                        origArgs = arguments;
+                
+                    // NOTE: running in the global context ...
+                    var fnCtx = { functions : {}, vars : {}, variables : {}, parentCtx : _globalCtx};
+                    fnCtx["this"] = this;
+                    fnCtx.variables["arguments"] = arguments;
+                    if (this instanceof node.eval_res) {
+                        fnCtx.variables["new.target"] = node.eval_res;
+                    }      
+                    var evl = new ASTEval();
+                    evl._strictMode = me._strictMode;
+                    
+                    for(var i=0; i<arg_len; i++) {
+                        args[i] = arguments[i];
+                    }
+                    // Going the node body with set values or variables...
+                    var i = 0;
+                    fnAST.params.forEach(function(p) {
+                        if(p.type=="RestElement") {
+                            // should be the rest of the string...
+                            fnCtx.variables[p.argument.name] =  args.slice(i);
+                            i++;
+                            return;
+                        }        
+                        if(typeof(origArgs[i]) != "undefined") {
+                            fnCtx.variables[p.name] =  origArgs[i];
+                        } else {
+                            fnCtx.variables[p.name] =  _undefined;
+                            if(fnAST.defaults && fnAST.defaults[i]) {
+                                me.walk(fnAST.defaults[i], ctx);
+                                fnCtx.variables[p.name] =  fnAST.defaults[i].eval_res;
+                            }
+                        }
+                        i++;
+                    });
+                    
+                    try {
+                        evl.startWalk(fnAST.body, fnCtx);
+                    } catch(msg) {
+                        if(msg.type=="return") {
+                            // ok
+                        } else {
+                            throw msg;
+                        }
+                    }
+                    
+                    // returned value is simply
+                    return fnCtx.return_value;
+                    
+                }
+                node.eval_res.__$$pLength__ = fnAST.params.length;
+                fnAST.params.forEach( function(p) {
+                    if(p.type=="RestElement") node.eval_res.__$$pLength__--;
+                });                
+            
+                return;    
+            }
             
             if(!me.canAccess(fnToCall)) {
                 node.eval_res = _undefined;
@@ -1931,7 +2095,6 @@ if(node.type=="MemberExpression") {
     } else {
         prop = node.property.name;
     }
-    if(!obj) throw new ReferenceError("Trying to evaluate property of undefined");
     if(obj && (typeof(prop)!="undefined")) {
         obj[prop] = _wrapValue( value );
         assignNode.eval_res = _wrapValue( value );
@@ -1962,7 +2125,6 @@ if(node.type=="MemberExpression") {
     } else {
         prop = node.property.name;
     }
-    if(!obj) throw new ReferenceError("Trying to evaluate property of undefined");
     if(obj && prop) {
         obj[prop] = value;
     }
@@ -1999,7 +2161,7 @@ try {
                 keyName = me.evalVariable( e.key, ctx );
             }
 
-            node.eval_res[keyName] = v;
+            node.eval_res[keyName] = _toValue(v);
         });    
     }
 } catch(e) {
@@ -2256,7 +2418,7 @@ this.collectVarsAndFns(node,ctx, function(node) {
             var fnCtx = { functions : {}, vars : {}, variables : {}, parentCtx : ctx};
             fnCtx["this"] = this;
             fnCtx.variables["arguments"] = arguments;
-            var evl = new ASTEval();
+            var evl = me.createChildProcess();
             
             for(var i=0; i<arg_len; i++) {
                 args[i] = arguments[i];
@@ -2681,6 +2843,25 @@ if(node.init) {
 
 ```javascript
 
+if(this._fast) {
+    if(!node) return;
+    if(node instanceof Array) {
+        var firstItem = node[0];
+        this.walk( firstItem, ctx );
+        return;
+    } else {
+        var t = node.type;
+        if(!node._ecnt) node._ecnt = 0;
+        node._ecnt++;
+        this[t](node, ctx);
+        if(node._next) {
+            this.walk( node._next, ctx );
+        } 
+        return;
+    }
+    return;
+}
+
 if(!node) return;
 if(this.isKilled()) return;
 
@@ -2698,18 +2879,32 @@ if(node instanceof Array) {
     this.walk( firstItem, ctx );
 
 } else {
-    if(node.type) {
-        if(this[node.type]) {
+    var t = node.type;
+    if(t) {
+        if(this[t]) {
             if(!node._ecnt) node._ecnt = 0;
             node._ecnt++;
-            this[node.type](node, ctx);
+            if(this["Before"+t]) {
+                this["Before"+t](node,ctx);
+            }
+            if(this._trace) {
+                var start_time = (new Date()).getTime();
+            }
+            this[t](node, ctx);
+            if(this._trace) {
+                var end_time = (new Date()).getTime();
+                this._traceRes.push([node, node.eval_res, start_time, end_time, end_time-start_time]);
+            }
+            if(this["After"+t]) {
+                this["After"+t](node,ctx);
+            }            
             //-- then either next or parent...
             var next = node._next;
             if(next) {
                 this.walk( next, ctx );
             } 
         } else {
-            console.log("Did not find "+node.type);
+            console.log("Did not find "+t);
             console.log(node);
         }
     }
