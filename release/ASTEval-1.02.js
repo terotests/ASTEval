@@ -719,6 +719,7 @@
 
         var evl = new ASTEval();
         evl._strictMode = this._strictMode;
+        evl._trace = this._trace;
 
         return evl;
       };
@@ -1515,6 +1516,7 @@
         this._codeStr = "";
         this._currentLine = "";
         this._indent = 0;
+        this._traceRes = [];
 
         this._options = options || {};
 
@@ -1523,6 +1525,10 @@
         }
         if (this._options.accessDenied) {
           _accessDenied = this._options.accessDenied;
+        }
+
+        if (this._options.trace) {
+          this._trace = this._options.trace;
         }
 
         if (!_globalCtx) _globalCtx = {};
@@ -2731,7 +2737,14 @@
               if (this["Before" + t]) {
                 this["Before" + t](node, ctx);
               }
+              if (this._trace) {
+                var start_time = new Date().getTime();
+              }
               this[t](node, ctx);
+              if (this._trace) {
+                var end_time = new Date().getTime();
+                this._traceRes.push([node, node.eval_res, start_time, end_time, end_time - start_time]);
+              }
               if (this["After" + t]) {
                 this["After" + t](node, ctx);
               }
