@@ -720,6 +720,9 @@
         var evl = new ASTEval();
         evl._strictMode = this._strictMode;
         evl._trace = this._trace;
+        if (this._trace) {
+          evl._traceRes = this._traceRes;
+        }
 
         return evl;
       };
@@ -1423,6 +1426,13 @@
        */
       _myTrait_.getStructures = function (t) {
         return this._structures;
+      };
+
+      /**
+       * @param float t
+       */
+      _myTrait_.getTrace = function (t) {
+        return this._traceRes;
       };
 
       /**
