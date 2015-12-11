@@ -181,8 +181,8 @@
             parentCtx: ctx
           };
           fnCtx["this"] = bind_this;
-          var evl = new ASTEval();
-          evl._strictMode = me._strictMode;
+          var evl = me.createChildProcess();
+          // evl._strictMode = me._strictMode;
 
           for (var i = 0; i < arg_len; i++) {
             args[i] = arguments[i];
@@ -709,6 +709,21 @@
       };
 
       /**
+       * @param Object options
+       */
+      _myTrait_.createChildProcess = function (options) {
+
+        if (!options) {
+          options = {};
+        }
+
+        var evl = new ASTEval();
+        evl._strictMode = this._strictMode;
+
+        return evl;
+      };
+
+      /**
        * @param Object ctx  - Parent Context
        * @param float isBlock
        */
@@ -1198,7 +1213,7 @@
           if (this instanceof node.eval_res) {
             fnCtx.variables["new.target"] = node.eval_res;
           }
-          var evl = new ASTEval();
+          var evl = me.createChildProcess();
           evl._strictMode = me._strictMode;
 
           for (var i = 0; i < arg_len; i++) {
@@ -1278,8 +1293,8 @@
           if (this instanceof node.eval_res) {
             fnCtx.variables["new.target"] = node.eval_res;
           }
-          var evl = new ASTEval();
-          evl._strictMode = me._strictMode;
+          var evl = me.createChildProcess();
+
           for (var i = 0; i < arg_len; i++) {
             args[i] = arguments[i];
           }
@@ -1797,11 +1812,11 @@
                 codeStr += "}";
 
                 var fnAST = esprima.parse(codeStr, {}).body[0];
-                var evl = new ASTEval({
+                var evl = me.createChildProcess({
                   globals: _globalCtx,
                   accessDenied: _accessDenied
                 });
-                evl._strictMode = this._strictMode;
+                // evl._strictMode = this._strictMode;
                 evl.listify(fnAST);
 
                 node.eval_res = function () {
@@ -2256,7 +2271,7 @@
               };
               fnCtx["this"] = this;
               fnCtx.variables["arguments"] = arguments;
-              var evl = new ASTEval();
+              var evl = me.createChildProcess();
 
               for (var i = 0; i < arg_len; i++) {
                 args[i] = arguments[i];
